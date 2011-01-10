@@ -7,7 +7,13 @@ strongtalk.pdb
 strongtalk-main.exe
 strongtalk-main.pdb
 .DS_Store
-*.mach
 build.osx/strongtalk/build
 Inlining
 source
+bin/libnasm.dylib
+bin/libnasm.dylib.NEW
+bin/libnasm.dylib.OLD
+*.o
+*.mach
+*.pbxuser
+*.perspectivev3

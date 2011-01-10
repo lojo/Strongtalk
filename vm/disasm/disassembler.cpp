@@ -25,9 +25,9 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 #ifdef DELTA_COMPILER
 #include "incls/_disassembler.cpp.incl"
 
-#include <inttypes.h>
+//#include <inttypes.h>
 
-#define DISASM_LIBRARY  "libnasm.dylib" 
+#define DISASM_LIBRARY  "libnasm"
 #define DISASM_FUNCTION "disasm"
 
 #define MAX_HEXBUF_SIZE 256
@@ -58,7 +58,13 @@ static uint32_t  prefer    = 0;    // select instruction set; 0 = Intel (default
 
 static void initialize(void) {
   DLL* library_handle;
-  library_handle = os::dll_load(DISASM_LIBRARY);
+  char libname[13];
+  char* extension = os::dll_extension();
+  strcpy(libname, DISASM_LIBRARY);
+  strcpy(libname+7, extension);
+  libname[7+strlen(extension)] = '\0';
+          
+  library_handle = os::dll_load(libname);
   if (library_handle == NULL) {
     return;
   }
@@ -241,7 +247,8 @@ static void disasm(nmethod* nm, outputStream* st) {
   if (disassemble) {
     // dump method source code before beginning native method disassembly
     prettyPrinter::print(nm->method(), nm->receiver_klass(), 0);
-        
+    nm->method()->print_codes();
+    
     last_reloc_offset = 0;
     current_reloc = (relocInfo*) nm->locs();
     for (char* pc = nm->insts(); pc < nm->instsEnd(); pc += lendis) {
