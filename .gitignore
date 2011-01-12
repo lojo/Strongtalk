@@ -9,7 +9,6 @@ strongtalk-main.pdb
 .DS_Store
 build.osx/strongtalk/build
 Inlining
-source
 bin/libnasm.dylib
 bin/libnasm.dylib.NEW
 bin/libnasm.dylib.OLD
