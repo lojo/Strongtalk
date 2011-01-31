@@ -21,7 +21,10 @@ Use and distribution of this software is subject to the terms of the attached so
 maxVal ^<Float>
 	^self fmax!
 
-minValLogBase2
+minVal ^<Float>
+	^self fmin!
+
+minValLogBase2 ^ <Int>
 	^-1074!
 
 nan
@@ -93,57 +96,52 @@ nan: tagp <String> ^ <Float>
 ! (Delta mirrorFor: #Float) classSide methodsFor: 'math constants' !
 
 
-E
-	"base of natural logarithm, e"
-	^self e!
-
-LN10
+Ln10 ^ <Float>
 	"log e10"
 	^2.30258509299404568401799145468436421!
 
-LN2
+Ln2 ^ <Float>
 	"log e2"
 	^0.693147180559945309417232121458176568!
 
-LOG10E
+Log10e ^ <Float>
 	"log 10e"
 	^0.434294481903251827651128918916605082!
 
-LOG2E
+Log2e ^ <Float>
 	"log 2e"
 	^1.44269504088896340735992468100189214!
 
-ONE_DIV_PI
+OneDivPi ^ <Float>
 	"1/pi"
 	^0.318309886183790671537767526745028724!
 
-ONE_DIV_SQRT_2
+OneDivSqrt2 ^ <Float>
 	"1/sqrt(2)"
 	^0.707106781186547524400844362104849039!
 
-PI
-	^self pi!
-
-PI_2
+PiDiv2 ^ <Float>
 	"pi/2"
 	^1.57079632679489661923132169163975144!
 
-PI_4
+PiDiv4 ^ <Float>
 	"pi/4"
 	^0.785398163397448309615660845819875721!
 
-RADIANS_PER_DEGREE
-	^ self PI / 180.0!
+RadiansPerDegree ^ <Float>
+	self deltaHack.  "cache this and other constants,
+									class initializer in SystemInitializer?"
+	^ self pi / 180.0!
 
-SQRT_2
+Sqrt2 ^ <Float>
 	"sqrt(2)"
 	^1.41421356237309504880168872420969808!
 
-TWO_DIV_PI
+TwoDivPi ^ <Float>
 	"2/pi"
 	^0.636619772367581343075535053490057448!
 
-TWO_DIV_SQRT_PI
+TwoDivSqrtPi ^ <Float>
 	"2/sqrt(pi)"
 	^1.12837916709551257389615890312154517! !
 
@@ -198,21 +196,22 @@ zero ^<Float>
 
 
 asFloat ^<Float>
-
+	"Answer a floating-point number approximating the receiver."
 	^self!
 
-asInteger ^<Integer>
-
-	^{{self primitiveFloatRoundedAsSmallIntegerIfFail: [ :err <Symbol> |
-		LargeInteger forFloat: self]}}!
+asInteger ^<Int>
+	"Answer an integer approximating the receiver."
+	"Note: special float values such as +-Infinity, NaN are undefined!!"
+	^self rounded
+!
 
 degreesToRadians ^ <Float>
-	"NB: maybe we should provide an instance method for RadiansPerDegree"
-	^self * self class RADIANS_PER_DEGREE!
+	"Answer the receiver converted from degrees to radians."
+	^self * self class RadiansPerDegree!
 
 radiansToDegrees ^ <Float>
-	"NB: maybe we should provide an instance method for RadiansPerDegree"
-	^self / self class RADIANS_PER_DEGREE! !
+	"Answer the receiver converted from radians to degrees."
+	^self / self class RadiansPerDegree! !
 
 ! (Delta mirrorFor: #Float) methodsFor: 'file out' !
 
@@ -257,212 +256,77 @@ to: stop <Float> do: f <[Float]> ^<Object>
 ! (Delta mirrorFor: #Float) methodsFor: 'mathematical functions' !
 
 
-XXXabs ^<Float>
-	"answer the absolute value of me
-	 with
-		fabs(+-0) -> 0
-		fabs(+-infinity) -> +infinity"
-	"NB: abs is already implemented in Number, but does it round correctly?"
-	^self unimplemented!
-
-acos ^<Float>
-	"answer inverse cosine"
-	^self unimplemented!
-
-acosh ^<Float>
-	"answer invers hyperbolic cosine"
-	^self unimplemented!
-
 arcCos ^<Float>
-
-^{{self primitiveFloatArcCosineIfFail: [ :err <Symbol> | self error: err ]}}!
+	"Answer the inverse cosine of the receiver in radians."
+	^{{self primitiveFloatArcCosineIfFail: [ :err <Symbol> | self error: err ]}}!
 
 arcSin ^<Float>
-
+	"Answer the inverse sine of the receiver in radians."
 	^{{self primitiveFloatArcSineIfFail: [ :err <Symbol> | self error: err ]}}!
 
 arcTan ^<Float>
-
-	^{{self primitiveFloatArcTangentIfFail: [ :err <Symbol> | self error: err ]}}!
-
-asin ^<Float>
-	"answer inverse sine"
-	^self unimplemented!
-
-asinh ^<Float>
-	"answer inverser hyperbolic sine"
-	^self unimplemented!
-
-atan ^<Float>
-	"answer inverse tangent"
-	^self unimplemented!
-
-atan2: a <Float> ^<Float>
-	"answer the principal value of the arc tangent of myself/a"
-	^self unimplemented!
-
-atanh ^<Float>
-	"answer inverse hyperbolic tangent"
-	^self unimplemented!
-
-cbrt ^<Float>
-	"answer the result of the cube root function"
-	^self unimplemented!
+	"Answer the inverse tangent of the receiver in radians."
+	^{{self primitiveFloatArcTangent}}!
 
 cos ^<Float>
-
+	"Answer the cosine of the receiver in radians."
 	^{{self primitiveFloatCosine}}!
 
-cosh ^<Float>
-	"answer hyperbolic cosine"
-	^self unimplemented!
-
-erf ^ <Float>
-	"answer the value of the error function
-	 	erf(x) = 2/sqrt(pi)*integral from 0 to x of exp(-t*t) dt.
-	"
-	^self unimplemented!
-
-erfc ^ <Float>
-	"answer the complementary error function of x; that is
-     erfc computes the difference of the error function erf(x) from 1.0."
-	^self unimplemented!
-
 exp ^<Float>
-	"answer e^myself"
+	"Answer the natural exponential of the receiver."
 	^{{self primitiveFloatExp}}!
 
-exp2: a <Float> ^ <Float>
-	"answer myself * 2^a"
-	^self unimplemented!
-
-expm1: a <SmallInteger> ^ <Float>
-	"answer the the base-e exponential of me,
-	minus 1 accurately even for very small values
-	of me.
-      e**myself - 1"
-     ^self unimplemented!
-
-floorLog: radix <SmallInteger> ^<Float>
-
-	self unimplemented!
-
-hypot: y <SmallInteger> ^<Float>
-	"answer the result of the euclidian distance function,
-	 sqrt(myelf*myself + y*y)
-	 without undue underflow or underflow"
-	^self unimplemented!
-
-ilogb ^<Float>
-	"answer myexponent as an integer value,
-		ilogb(+-0) returns FP_ILOGB0.
-		ilogb(+-infinity) returns INT_MAX.
-		ilogb(x) returns FP_ILOGBNAN if x is a NaN.
-    	 A range error may occur if x is 0, +-infinity, or a nan.
-     "
-	^self unimplemented!
+floorLog: operand <Number> ^<Int>
+	"Answer the largest integer less than or equal to
+	the logarithm to the base operand of the receiver."
+	
+	"Float>>log: 1.0 can return +-Infinitiy, NaN, which cannot
+	be represented by an <Int> type. Throw an exeception."
+	operand <= 1.0 ifTrue: [self error: 'radix must be > 1'].
+	^ (self log: operand) floor!
 
 j0 ^<Float>
-	"answer the value of the zeroth Bessel function"
-	^self unimplemented!
+	"Answer the value of the zeroth Bessel function"
+	^{{self primitiveFloatBesselJ0}}!
 
 j1 ^<Float>
-	"answer the value of the first Bessel function"
-	^self unimplemented!
+	"Answer the value of the first Bessel function"
+	^{{self primitiveFloatBesselJ1}}!
 
-jn: a <SmallInteger> ^<Float>
-	"answer the value of the nth Bessel function"
-	^self unimplemented!
-
-ldexp: a <SmallInteger> ^ <Float>
-	"answer my value multiplied by a power of 2"
-	^self timesTwoPower: a!
-
-lgamma ^ <Float>
-	"answer the  natural logorithm of the absolute 
-	value of the gamma function of myself."
-	^self unimplemented!
+jn: n <SmallInteger> ^<Float>
+	"Answer the value of the nth Bessel function"
+	^{{self primitiveFloatBesselJn: n ifFail: [ :err <Symbol> | self error: err ]}}!
 
 ln ^<Float>
+	"Answer the natural logarithm of the receiver."
 	^{{self primitiveFloatLnIfFail: [ :err <Symbol> | self error: err ]}}!
 
-ln1p ^<Float>
-	"answer the value of ln(1+myself) accurately even for very
-     small values of me."
-     ^self unimplemented!
-
-log  ^<Float>
-	^{{self primitiveFloatLog10IfFail: [ :err <Symbol> | self error: err ]}}!
-
-log2  ^<Float>
-	^self log: 2!
-
-log: a <SmallInteger> ^<Float>
-	^self ln / a ln!
-
-logb ^<Float>
-	"answer my exponent as a floating-point number
-		logb(+-0) returns -infinity and raises the 'divide-by-zero' floating-point
-     exception.
-     	logb(+-infinity) returns +infinity.
-     "
-	^self unimplemented!
-
-pow: a <Number> ^ <Float>
-	"answer myself raised to the power a.
-	NB: Provides a lot of Nan and ininity checks!!"
-	^self unimplemented!
-
-scalbn: n <SmallInteger>
-	"answer  myself *(2**n) computed by exponent
-     manipulation.
-          	scalbn(+-0, n) returns +-0.
-        	scalbn(x, 0) returns x.
-			scalbn(+-infinity, n) returns +-infinity."
-     ^self unimplemented
-     !
-
 sin ^<Float>
+	"Answer the sine of the receiver."
 	^{{self primitiveFloatSine}}!
 
-sinh ^<Float>
-	"answer hyperbolic sine"
-	^self unimplemented!
-
 sqrt ^<Float>
-
+	"Answer the positive square root of the receiver."
 	^{{self primitiveFloatSqrtIfFail: [ :err <Symbol> | self error: err ]}}!
 
-squared ^ <Float>
-	"NB: squared is already defined is class Number"
-	^{{self primitiveFloatSquared}}!
-
 tan ^<Float>
+	"Answer the tangent of the receiver."
+	^{{self primitiveFloatTangent}}!
 
-	^{{self primitiveFloatTangentIfFail:[ :err <Symbol> | self error: err ]}}!
-
-tanh ^<Float>
-	"answer hyperbolic tangent"
-	^self unimplemented!
-
-tgamma ^ <Float>
-	"answer the value of the gamma function"
-	^self unimplemented!
-
-timesTwoPower: a <SmallInteger> ^ <Float>
+timesTwoPower: a <Int> ^ <Float>
 	^{{self primitiveFloatTimesTwoPower: a ifFail: [ :err <Symbol> | self error: err ]}}!
 
 y0 ^<Float>
-	"answer the value of the zeroth Bessel function of the second kind"
-	^self unimplemented!
+	"Answer the value of the zeroth Bessel function of the second kind"
+	^{{self primitiveFloatBesselY0}}!
 
 y1 ^<Float>
-	"answer the value of the first Bessel function of the second kind"
-	^self unimplemented!
+	"Answer the value of the first Bessel function of the second kind"
+	^{{self primitiveFloatBesselY1}}!
 
-yn: a <SmallInteger> ^<Float>
-	"answer the value of the nth Bessel function of the second kind"
-	^self unimplemented! !
+yn: n <SmallInteger> ^<Float>
+	"Answer the value of the nth Bessel function of the second kind"
+	^{{self primitiveFloatBesselYn: n ifFail: [ :err <Symbol> | self error: err ]}}! !
 
 ! (Delta mirrorFor: #Float) methodsFor: 'obsolete' !
 
@@ -503,43 +367,16 @@ isNil ^<Boolean>
 		ifFail: [ :err <Symbol> |
 				self nonPrimitiveDivide: a error: err	]}}!
 
-abs ^ <Float>
-	^{{self primitiveFloatAbs}}!
-
 copySign: sign <Float> ^ <Float>
-	"answer the value equal in magnitude to
+	"Answer the value equal in magnitude to
 	me but with specified sign (correctly rounded)."
 	
 	"Note: IEEE-754 recommends copySign to reveal the sign
 	without ever signaling an exception,"
 	^{{self primitiveFloatCopySign: sign}}!
 
-exponent ^ <SmallInteger>
-	"max float exponents are represented in the following form:
-		int x such that FLT_RADIX**(x-1) is a representable float, emax.
-	Our primitive uses frexp() and the representation described above, so
-	we have to subtract 1 to get the real value o fthe exponent."
-	^{{self primitiveFloatExponent}} - 1!
-
-frexp: integralPow2 <Float> ^ <Float>
-	"answer my floating-point number into normalized fraction and power of 2"
-	^self unimplemented!
-
-fusedMultiply: y <Number> add: z <Number> ^ <X>
-	"answer (myself*y)+z, rounded as one ternary operation: they
-     compute the value (as if) to infinite precision and round once to the result
-     format, according to the current rounding mode."
-	^self unimplemented!
-
-mantissa ^ <Float>
-	^{{self primitiveFloatMantissa}}!
-
-modf: integralPart <Float> ^ <Float>
-	"answer the integral and fractional parts of me"
-	^self unimplemented!
-
 nextAfter: direction <Float> ^ <Float>
-	"answer the next floating-point number after
+	"Answer the next floating-point number after
 	me specified by direction (correctly-rounded)."
 	^{{self primitiveFloatNextAfter: direction}}! !
 
@@ -627,71 +464,11 @@ multiplyFromFloat: o <Float> ^<Float>
 subtractFromFloat: o <Float> ^<Float>
 	self error: 'can''t happen because of double dispatching, but need for typing'.! !
 
-! (Delta mirrorFor: #Float) methodsFor: 'rounding' !
-
-
-\\ a <Number> ^<X>
-			{where X <Number> is returnType of #moduloFromFloat: message of arg 1}
-	"%generated code- do not modify"
-	^guaranteed <X> (a moduloFromFloat: self)!
-
-ceiling ^ <Float>
-	"round to smallest integral value not less than me."
-	^{{self primitiveFloatCeiling}}!
-
-floor ^ <Float>
-	"round to smallest integral value not greater than me."
-	^{{self primitiveFloatFloor}}!
-
-lrint ^ <Number>
-	"round to integral value"
-	^self unimplemented!
-
-lround ^ <Number>
-	"round to integral value, regardless of rounding direction"
-	^self unimplemented!
-
-nearByInt ^ <Float>
-	"round to integral value in floating-point format.
-	Guaranteed to set no floating point flags and
-	to trigger no exceptions!!"
-	^self unimplemented!
-
-rem: a <Number> ^ <Number>
-	"compute the value r such that r = myself  - n*a, where n is
-     the integer nearest the exact value of myself/a."
-	^self unimplemented!
-
-rem: a <Number> quo: q <SmallInteger> ^ <Number>
-	"compute the value r such that r = myself  - n*a, where n is
-     the integer nearest the exact value of myself/a.
-     Store the lower seven bits of the integral quotient myself/a
-     and the sign bit to q.
-     "
-	^self unimplemented!
-
-rint ^ <Float>
-	"round to integral value in floating-point format"
-	^self unimplemented!
-
-round ^ <Float>
-	"round to integral value, regardless of rounding direction"
-	^self unimplemented!
-
-trunc ^ <Float>
-	"truncate to integer value"
-	^self unimplemented!
-
-truncated ^<Int>
-
-	"%todo: change the primitive to return an integer"
-	^{{self primitiveFloatTruncated}} asInteger! !
-
 ! (Delta mirrorFor: #Float) methodsFor: 'testing' !
 
 
 isFinite ^ <Boolean>
-	"answer true if I am not infinite, i.e.
+	"Answer true if I am not infinite, i.e.
 		if  -infinity < me < +infinity.
 	answer false if I am infinite or a NaN."
 	^{{self primitiveFloatIsFinite}}!
@@ -706,15 +483,39 @@ isNaN ^ <Boolean>
 
 isNormal ^ <Boolean>
 	"answer true if I am a non-zero normalized number"
-	^{{self primitiveFloatIsNormal}}!
+	^{{self primitiveFloatIsNormal}}! !
 
-sign ^ <Float>
-	"answer the result of the signum(x) function for me, i.e
-		x < 0         =>  -1.0
-		x = +0       =>  +0.0
-		x = -0        =>  -0.0
-		x > 0         =>  +1.0
-		x = NaN  =>  Nan
-	"
-	^{{self primitiveFloatSign}}! !
+! (Delta mirrorFor: #Float) methodsFor: 'truncation and rounding' !
+
+
+\\ a <Number> ^<X>
+			{where X <Number> is returnType of #moduloFromFloat: message of arg 1}
+	"%generated code- do not modify"
+	^guaranteed <X> (a moduloFromFloat: self)!
+
+exponent ^ <Int>
+	"Answer the exponent of the receiver with radix 2"
+	^{{self primitiveFloatExponent}}
+!
+
+fractionPart ^<Float>
+	"Answer the fractional part of the receiver."
+	^{{self primitiveFloatFractionPart}}!
+
+integerPart ^<Float>
+	"Answer the integer part of the receiver."
+	^self - self fractionPart!
+
+significand ^ <Float>
+	"Answer the normalized fraction (significand) of the receiver"
+	^{{self primitiveFloatSignificand}}!
+
+truncated ^<Int>
+	"Answer an integer equal to the receiver truncated towards zero."
+	^{{
+		self primitiveFloatTruncatedAsSmallIntegerIfFail: [ :err <Symbol> |
+			self isFinite
+				ifTrue: [LargeInteger forFloat: self]
+				ifFalse: [self error: 'Cannot truncate a NaN or an Infinity']]
+		}}! !
 
