@@ -113,81 +113,72 @@ PRIM_DECL_2(doubleOopPrimitives::mod, oop receiver, oop argument) {
   if (!argument->is_double())
     return markSymbol(vmSymbols::first_argument_has_wrong_type());
 
-  double result = fmod(doubleOop(receiver)->value(), doubleOop(argument)->value());
+  double result = ::fmod(doubleOop(receiver)->value(), doubleOop(argument)->value());
   return new_double(result);
 }
 
 PRIM_DECL_1(doubleOopPrimitives::cosine, oop receiver) {
   PROLOGUE_1("cosine", receiver);
   ASSERT_RECEIVER;
-  return new_double(cos(doubleOop(receiver)->value()));
+  return new_double(::cos(doubleOop(receiver)->value()));
 }
 
 PRIM_DECL_1(doubleOopPrimitives::sine, oop receiver) {
   PROLOGUE_1("sine", receiver);
   ASSERT_RECEIVER;
-  return new_double(sin(doubleOop(receiver)->value()));
+  return new_double(::sin(doubleOop(receiver)->value()));
 }
 
 PRIM_DECL_1(doubleOopPrimitives::tangent, oop receiver) {
   PROLOGUE_1("tangent", receiver);
   ASSERT_RECEIVER;
-  return new_double(tan(doubleOop(receiver)->value()));
+  return new_double(::tan(doubleOop(receiver)->value()));
 }
-
 
 PRIM_DECL_1(doubleOopPrimitives::arcCosine, oop receiver) {
   PROLOGUE_1("arcCosine", receiver);
   ASSERT_RECEIVER;
-  return new_double(acos(doubleOop(receiver)->value()));
+  double value = doubleOop(receiver)->value();
+  if (::fabs(value) <= 1.0) {
+    return new_double(::acos(value));
+  }
+  return markSymbol(vmSymbols::value_out_of_range());
 }
 
 PRIM_DECL_1(doubleOopPrimitives::arcSine, oop receiver) {
   PROLOGUE_1("arcSine", receiver);
   ASSERT_RECEIVER;
-  return new_double(asin(doubleOop(receiver)->value()));
+  double value = doubleOop(receiver)->value();
+  if (::fabs(value) <= 1.0) {
+    return new_double(::asin(value));
+  }
+  return markSymbol(vmSymbols::value_out_of_range());
 }
 
 PRIM_DECL_1(doubleOopPrimitives::arcTangent, oop receiver) {
   PROLOGUE_1("arcTangent", receiver);
   ASSERT_RECEIVER;
-  return new_double(atan(doubleOop(receiver)->value()));
-}
-
-PRIM_DECL_1(doubleOopPrimitives::hyperbolicCosine, oop receiver) {
-  PROLOGUE_1("hyperbolicCosine", receiver);
-  ASSERT_RECEIVER;
-  return new_double(cosh(doubleOop(receiver)->value()));
-}
-
-PRIM_DECL_1(doubleOopPrimitives::hyperbolicSine, oop receiver) {
-  PROLOGUE_1("hyperbolicSine", receiver);
-  ASSERT_RECEIVER;
-  return new_double(sinh(doubleOop(receiver)->value()));
-}
-
-PRIM_DECL_1(doubleOopPrimitives::hyperbolicTangent, oop receiver) {
-  PROLOGUE_1("hyperbolicTangent", receiver);
-  ASSERT_RECEIVER;
-  return new_double(tanh(doubleOop(receiver)->value()));
+  return new_double(::atan(doubleOop(receiver)->value()));
 }
 
 PRIM_DECL_1(doubleOopPrimitives::sqrt, oop receiver) {
   PROLOGUE_1("sqrt", receiver);
   ASSERT_RECEIVER;
-  return new_double(::sqrt(doubleOop(receiver)->value()));
-}
-
-PRIM_DECL_1(doubleOopPrimitives::squared, oop receiver) {
-  PROLOGUE_1("squared", receiver);
-  ASSERT_RECEIVER;
-  return new_double(doubleOop(receiver)->value() * 2);
+  double value = doubleOop(receiver)->value();
+  if (value >= 0.0) {
+	return new_double(::sqrt(value));
+  }
+  return markSymbol(vmSymbols::receiver_negative());
 }
 
 PRIM_DECL_1(doubleOopPrimitives::ln, oop receiver) {
   PROLOGUE_1("ln", receiver);
   ASSERT_RECEIVER;
-  return new_double(log(doubleOop(receiver)->value()));
+  double value = doubleOop(receiver)->value();
+  if (value >= 0.0) {
+    return new_double(::log(value));
+  }
+  return markSymbol(vmSymbols::receiver_not_strictly_positive());
 }
 
 PRIM_DECL_1(doubleOopPrimitives::exp, oop receiver) {
@@ -211,14 +202,7 @@ PRIM_DECL_1(doubleOopPrimitives::isNan, oop receiver) {
 PRIM_DECL_1(doubleOopPrimitives::isFinite, oop receiver) {
   PROLOGUE_1("isFinite", receiver);
   ASSERT_RECEIVER;
-  return _finite(doubleOop(receiver)->value()) ? trueObj : falseObj;
-}
-
-PRIM_DECL_1(doubleOopPrimitives::floor, oop receiver) {
-  PROLOGUE_1("floor", receiver);
-  ASSERT_RECEIVER;
-  double result = ::floor(doubleOop(receiver)->value());
-  return new_double(result);
+  return ::_finite(doubleOop(receiver)->value()) ? trueObj : falseObj;
 }
 
 PRIM_DECL_1(doubleOopPrimitives::smi_floor, oop receiver) {
@@ -231,36 +215,21 @@ PRIM_DECL_1(doubleOopPrimitives::smi_floor, oop receiver) {
     if (result < smi_max) return as_smiOop((int) result);
   }
   return markSymbol(vmSymbols::conversion_failed());
-
-}
-
-PRIM_DECL_1(doubleOopPrimitives::ceiling, oop receiver) {
-  PROLOGUE_1("ceiling", receiver);
-  ASSERT_RECEIVER;
-  double result = ceil(doubleOop(receiver)->value());
-  return new_double(result);
 }
 
 PRIM_DECL_1(doubleOopPrimitives::exponent, oop receiver) {
   PROLOGUE_1("exponent", receiver);
   ASSERT_RECEIVER;
   int result;
-  (void) frexp(doubleOop(receiver)->value(), &result);
-  return as_smiOop(result);
+  (void) ::frexp(doubleOop(receiver)->value(), &result);
+  return as_smiOop(result - 1);
 }
 
-PRIM_DECL_1(doubleOopPrimitives::mantissa, oop receiver) {
-  PROLOGUE_1("mantissa", receiver);
+PRIM_DECL_1(doubleOopPrimitives::significand, oop receiver) {
+  PROLOGUE_1("significand", receiver);
   ASSERT_RECEIVER;
   int exp;
-  return new_double(frexp(doubleOop(receiver)->value(), &exp));
-}
-
-PRIM_DECL_1(doubleOopPrimitives::truncated, oop receiver) {
-  PROLOGUE_1("truncated", receiver);
-  ASSERT_RECEIVER;
-  double value = doubleOop(receiver)->value();
-  return new_double(value > 0.0 ? ::floor(value) : ::ceil(value));
+  return new_double(::frexp(doubleOop(receiver)->value(), &exp) * 2);
 }
 
 PRIM_DECL_2(doubleOopPrimitives::timesTwoPower, oop receiver, oop argument) {
@@ -268,18 +237,18 @@ PRIM_DECL_2(doubleOopPrimitives::timesTwoPower, oop receiver, oop argument) {
   ASSERT_RECEIVER;
   if (!argument->is_smi())
     return markSymbol(vmSymbols::first_argument_has_wrong_type());
-  return new_double(ldexp(doubleOop(receiver)->value(), smiOop(argument)->value()));
+  return new_double(::ldexp(doubleOop(receiver)->value(), smiOop(argument)->value()));
 }
 
-PRIM_DECL_1(doubleOopPrimitives::roundedAsSmallInteger, oop receiver) {
-  PROLOGUE_1("roundedAsSmallInteger", receiver);
+PRIM_DECL_1(doubleOopPrimitives::truncatedAsSmallInteger, oop receiver) {
+  PROLOGUE_1("truncatedAsSmallInteger", receiver);
   ASSERT_RECEIVER;
   if (doubleOop(receiver)->value() < 0.0) {
-    double result = ::ceil(doubleOop(receiver)->value() - 0.5);
+    double result = ::ceil(doubleOop(receiver)->value());
     if (result > smi_min)
     	return as_smiOop((int) result);
   } else {
-    double result = ::floor(doubleOop(receiver)->value() + 0.5);
+    double result = ::floor(doubleOop(receiver)->value());
     if (result < smi_max)
     	 return as_smiOop((int) result);
   }
@@ -478,7 +447,7 @@ PRIM_DECL_1(doubleOopPrimitives::isInfinity, oop receiver) {
   PROLOGUE_1("isInfinity", receiver);
   ASSERT_RECEIVER;
 #ifdef WIN32
-  int status = _fpclass(doubleOop(receiver)->value());
+  int status = ::_fpclass(doubleOop(receiver)->value());
   bool isInfinite = (status == _FPCLASS_NINF || status == _FPCLASS_PINF);
 #else
   bool isInfinite = isinf(doubleOop(receiver)->value()) != 0;
@@ -490,46 +459,12 @@ PRIM_DECL_1(doubleOopPrimitives::isNormal, oop receiver){
   PROLOGUE_1("isFinite", receiver);
   ASSERT_RECEIVER;
 #ifdef WIN32
-  int status = _fpclass(doubleOop(receiver)->value());
+  int status = ::_fpclass(doubleOop(receiver)->value());
   bool isNormal = (status == _FPCLASS_NN || status == _FPCLASS_PN);
 #else
   bool isNormal = isnormal(doubleOop(receiver)->value()) != 0;
 #endif
   return isNormal ? trueObj : falseObj;
-}
-
-
-PRIM_DECL_1(doubleOopPrimitives::sign, oop receiver) {
-  PROLOGUE_1("sign", receiver);
-  ASSERT_RECEIVER;
-#ifdef WIN32
-  double signum = 0.0;
-  double value = doubleOop(receiver)->value();
-  int status = _fpclass(value);
-  if (status == _FPCLASS_SNAN || status == _FPCLASS_QNAN) { // sign(NaN) => NaN
-    signum = value;
-  } else {
-	if (status == _FPCLASS_NZ || status == _FPCLASS_PZ) {
-	  signum = value;                                       // sign(+0) => +0.0  and	sign(-0) => -0.0
-	} else {
-	  signum = value < 0 ? -1.0 : 1.0;                      // sign(<0) => -1.0  and	sign(>0) => 1.0
-	}
-  }
-#else
-  double signum = 0.0;
-  double value = doubleOop(receiver)->value();
-  int status = fpclassify(value);
-  if (status == FP_NAN) {                                   // sign(NaN) => NaN
-    signum = value;
-  } else {
-    if (status == FP_ZERO) {
-	  signum = value;                                       // sign(+0) => +0.0  and	sign(-0) => -0.0
-    } else {
-	  signum = value < 0 ? -1.0 : 1.0;                      // sign(<0) => -1.0  and	sign(>0) => 1.0
-    }
-  }
-#endif
-  return new_double(signum);
 }
 
 PRIM_DECL_2(doubleOopPrimitives::copySign, oop receiver, oop argument) {
@@ -540,9 +475,9 @@ PRIM_DECL_2(doubleOopPrimitives::copySign, oop receiver, oop argument) {
   double x = doubleOop(receiver)->value();
   double y = doubleOop(argument)->value();
 #ifdef WIN32
-  return new_double(_copysign(x, y));
+  return new_double(::_copysign(x, y));
 #else
-  return new_double(copysign(x, y));
+  return new_double(::copysign(x, y));
 #endif
 }
 
@@ -554,14 +489,78 @@ PRIM_DECL_2(doubleOopPrimitives::nextAfter, oop receiver, oop argument) {
   double x = doubleOop(receiver)->value();
   double y = doubleOop(argument)->value();
 #ifdef WIN32
-  return new_double(_nextafter(x, y));
+  return new_double(::_nextafter(x, y));
 #else
-  return new_double(nextafter(x, y));
+  return new_double(::nextafter(x, y));
 #endif
 }
 
-PRIM_DECL_1(doubleOopPrimitives::abs, oop receiver) {
-  PROLOGUE_1("abs", receiver);
+PRIM_DECL_1(doubleOopPrimitives::j0, oop receiver){
+  PROLOGUE_1("j0", receiver);
   ASSERT_RECEIVER;
-  return new_double(fabs(doubleOop(receiver)->value()));
+#ifdef WIN32
+  return new_double(::_j0(doubleOop(receiver)->value()));
+#else
+  return new_double(::j0(doubleOop(receiver)->value()));
+#endif
+}
+
+PRIM_DECL_1(doubleOopPrimitives::j1, oop receiver){
+  PROLOGUE_1("j1", receiver);
+  ASSERT_RECEIVER;
+#ifdef WIN32
+  return new_double(::_j1(doubleOop(receiver)->value()));
+#else
+  return new_double(::j1(doubleOop(receiver)->value()));
+#endif
+}
+
+PRIM_DECL_2(doubleOopPrimitives::jn, oop receiver, oop argument) {
+  PROLOGUE_2("jn", receiver, argument);
+  ASSERT_RECEIVER;
+  if (!argument->is_smi()) return markSymbol(vmSymbols::first_argument_has_wrong_type());
+
+#ifdef WIN32
+  return new_double(::_jn(smiOop(argument)->value(), doubleOop(receiver)->value()));
+#else
+  return new_double(::jn(smiOop(argument)->value(), doubleOop(receiver)->value()));
+#endif
+}
+
+PRIM_DECL_1(doubleOopPrimitives::y0, oop receiver){
+  PROLOGUE_1("y0", receiver);
+  ASSERT_RECEIVER;
+#ifdef WIN32
+  return new_double(::_y0(doubleOop(receiver)->value()));
+#else
+  return new_double(::y0(doubleOop(receiver)->value()));
+#endif
+}
+
+PRIM_DECL_1(doubleOopPrimitives::y1, oop receiver){
+  PROLOGUE_1("y1", receiver);
+  ASSERT_RECEIVER;
+#ifdef WIN32
+  return new_double(::_y1(doubleOop(receiver)->value()));
+#else
+  return new_double(::y1(doubleOop(receiver)->value()));
+#endif
+}
+
+PRIM_DECL_2(doubleOopPrimitives::yn, oop receiver, oop argument) {
+  PROLOGUE_2("yn", receiver, argument);
+  ASSERT_RECEIVER;
+  if (!argument->is_smi()) return markSymbol(vmSymbols::first_argument_has_wrong_type());
+#ifdef WIN32
+  return new_double(::_yn(smiOop(argument)->value(), doubleOop(receiver)->value()));
+#else
+  return new_double(::yn(smiOop(argument)->value(), doubleOop(receiver)->value()));
+#endif
+}
+
+PRIM_DECL_1(doubleOopPrimitives::fractionPart, oop receiver){
+  PROLOGUE_1("fractionPart", receiver);
+  ASSERT_RECEIVER;
+  double integral_part;
+  return new_double(::modf(doubleOop(receiver)->value(), &integral_part));
 }

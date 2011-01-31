@@ -111,7 +111,7 @@ class doubleOopPrimitives : AllStatic {
   static PRIM_DECL_1(sine, oop receiver);
   
   //%prim
-  // <Float> primitiveFloatTangentIfFail: failBlock <PrimFailBlock> ^<Float> =
+  // <Float> primitiveFloatTangent ^<Float> =
   //   Internal { doc   = 'Returns the tangent of the receiver'
   //              flags = #(Pure DoubleArith)
   //              name  = 'doubleOopPrimitives::tangent' }
@@ -135,37 +135,13 @@ class doubleOopPrimitives : AllStatic {
   static PRIM_DECL_1(arcSine, oop receiver);
   
   //%prim
-  // <Float> primitiveFloatArcTangentIfFail: failBlock <PrimFailBlock> ^<Float> =
+  // <Float> primitiveFloatArcTangent ^<Float> =
   //   Internal { doc   = 'Returns the arc-tangent of the receiver'
   //              flags = #(Pure DoubleArith)
   //              name  = 'doubleOopPrimitives::arcTangent' }
   //%
   static PRIM_DECL_1(arcTangent, oop receiver);
-  
-  //%prim
-  // <Float> primitiveFloatHyperbolicCosineIfFail: failBlock <PrimFailBlock> ^<Float> =
-  //   Internal { doc   = 'Returns the hyperbolic-cosine of the receiver'
-  //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::hyperbolicCosine' }
-  //%
-  static PRIM_DECL_1(hyperbolicCosine, oop receiver);
-  
-  //%prim
-  // <Float> primitiveFloatHyperbolicSineIfFail: failBlock <PrimFailBlock> ^<Float> =
-  //   Internal { doc   = 'Returns the hyperbolic-sine of the receiver'
-  //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::hyperbolicSine' }
-  //%
-  static PRIM_DECL_1(hyperbolicSine, oop receiver);
-  
-  //%prim
-  // <Float> primitiveFloatHyperbolicTangentIfFail: failBlock <PrimFailBlock> ^<Float> =
-  //   Internal { doc   = 'Returns the hyperbolic-tangent of the receiver'
-  //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::hyperbolicTangent' }
-  //%
-  static PRIM_DECL_1(hyperbolicTangent, oop receiver);
-  
+    
   //%prim
   // <Float> primitiveFloatSqrtIfFail: failBlock <PrimFailBlock> ^<Float> =
   //   Internal { doc   = 'Returns the square root of the receiver'
@@ -174,14 +150,6 @@ class doubleOopPrimitives : AllStatic {
   //              name  = 'doubleOopPrimitives::sqrt' }
   //%
   static PRIM_DECL_1(sqrt, oop receiver);
-  
-  //%prim
-  // <Float> primitiveFloatSquared ^<Float> =
-  //   Internal { doc   = 'Returns the result of multiplying the receiver by it self'
-  //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::squared' }
-  //%
-  static PRIM_DECL_1(squared, oop receiver);
   
   //%prim
   // <Float> primitiveFloatLnIfFail: failBlock <PrimFailBlock> ^<Float> =
@@ -226,14 +194,6 @@ class doubleOopPrimitives : AllStatic {
   static PRIM_DECL_1(isFinite, oop receiver);
   
   //%prim
-  // <Float> primitiveFloatFloor ^<Float> =
-  //   Internal { doc   = 'Returns the largest integral Float that is less than or equal to the receiver'
-  //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::floor' }
-  //%
-  static PRIM_DECL_1(floor, oop receiver);
-
-  //%prim
   // <Float> primitiveFloatSmallIntegerFloorIfFail: failBlock <PrimFailBlock> ^<SmallInteger> =
   //   Internal { doc   = 'Returns the largest SmallInteger that is less than or equal to the receiver'
   //              flags = #(Pure DoubleArith LastDeltaFrameNotNeeded)
@@ -241,15 +201,7 @@ class doubleOopPrimitives : AllStatic {
   //              name  = 'doubleOopPrimitives::smi_floor' }
   //%
   static PRIM_DECL_1(smi_floor, oop receiver);
-  
-  //%prim
-  // <Float> primitiveFloatCeiling ^<Float> =
-  //   Internal { doc   = 'Returns the smallest integral Float that is greater than or equal to the receiver'
-  //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::ceiling' }
-  //%
-  static PRIM_DECL_1(ceiling, oop receiver);
-  
+    
   //%prim
   // <Float> primitiveFloatExponent ^<SmallInteger> =
   //   Internal { doc   = 'Returns the exponent part of the receiver'
@@ -259,20 +211,12 @@ class doubleOopPrimitives : AllStatic {
   static PRIM_DECL_1(exponent, oop receiver);
   
   //%prim
-  // <Float> primitiveFloatMantissa ^<Float> =
-  //   Internal { doc   = 'Returns the mantissa part of the receiver'
+  // <Float> primitiveFloatSignificand ^<Float> =
+  //   Internal { doc   = 'Returns the normalized fraction part of the receiver'
   //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::mantissa' }
+  //              name  = 'doubleOopPrimitives::significand' }
   //%
-  static PRIM_DECL_1(mantissa, oop receiver);
-
-  //%prim
-  // <Float> primitiveFloatTruncated  ^<Float> =
-  //   Internal { doc   = 'Returns the receiver truncated'
-  //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::truncated' }
-  //%
-  static PRIM_DECL_1(truncated, oop receiver);
+  static PRIM_DECL_1(significand, oop receiver);
   
   //%prim
   // <Float> primitiveFloatTimesTwoPower: aNumber   <SmallInteger>
@@ -285,14 +229,14 @@ class doubleOopPrimitives : AllStatic {
   static PRIM_DECL_2(timesTwoPower, oop receiver, oop argument);
   
   //%prim
-  // <Float> primitiveFloatRoundedAsSmallIntegerIfFail: failBlock <PrimFailBlock>  ^<SmallInteger> =
-  //   Internal { doc   = 'Returns the receiver converted to a SmallInteger'
+  // <Float> primitiveFloatTruncatedAsSmallIntegerIfFail: failBlock <PrimFailBlock>  ^<SmallInteger> =
+  //   Internal { doc   = 'Returns the receiver truncated to a SmallInteger'
   //              error = #(SmallIntegerConversionFailed)
   //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::roundedAsSmallInteger' }
+  //              name  = 'doubleOopPrimitives::truncatedAsSmallInteger' }
   //%
-  static PRIM_DECL_1(roundedAsSmallInteger, oop receiver);
- 
+  static PRIM_DECL_1(truncatedAsSmallInteger, oop receiver);
+
   //%prim
   // <Float> primitiveFloatAsSmallIntegerIfFail: failBlock <PrimFailBlock>  ^<SmallInteger> =
   //   Internal { doc   = 'Returns the receiver as a SmallInteger'
@@ -370,14 +314,6 @@ class doubleOopPrimitives : AllStatic {
   static PRIM_DECL_1(isNormal, oop receiver);
 
   //%prim
-  // <Float> primitiveFloatSign ^<Float> =
-  //   Internal { doc   = 'Returns whether the receiver is negative positive, zero or a NaN(-1,1,0, NaN)'
-  //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::sign' }
-  //%
-  static PRIM_DECL_1(sign, oop receiver);
-
-  //%prim
   // <Float> primitiveFloatCopySign: aNumber <Float> ^<Float> =
   //   Internal { doc   = 'Returns the receiver magnitude with the sign of aNumber'
   //              flags = #(Pure DoubleArith)
@@ -393,15 +329,64 @@ class doubleOopPrimitives : AllStatic {
   //%
   static PRIM_DECL_2(nextAfter, oop receiver, oop argument);
 
-  
   //%prim
-  // <Float> primitiveFloatAbs ^<Float> =
-  //   Internal { doc   = 'Returns the absolut value of the receiver'
+  // <Float> primitiveFloatBesselJ0 ^<Float> =
+  //   Internal { doc   = 'Answer the value of the zeroth Bessel function'
   //              flags = #(Pure DoubleArith)
-  //              name  = 'doubleOopPrimitives::abs' }
+  //              name  = 'doubleOopPrimitives::j0' }
   //%
-  static PRIM_DECL_1(abs, oop receiver);
+  static PRIM_DECL_1(j0, oop receiver);
 
+  //%prim
+  // <Float> primitiveFloatBesselJ1 ^<Float> =
+  //   Internal { doc   = 'Answer the value of the first Bessel function'
+  //              flags = #(Pure DoubleArith)
+  //              name  = 'doubleOopPrimitives::j1' }
+  //%
+  static PRIM_DECL_1(j1, oop receiver);
+
+  //%prim
+  // <Float> primitiveFloatBesselJn: n <SmallInteger>
+  //                         ifFail: failBlock <PrimFailBlock> ^<Float> =
+  //   Internal { doc   = 'Answer the value of the nth Bessel function'
+  //              flags = #(Pure DoubleArith)
+  //              name  = 'doubleOopPrimitives::jn' }
+  //%
+  static PRIM_DECL_2(jn, oop receiver, oop argument);
+
+
+  //%prim
+  // <Float> primitiveFloatBesselY0 ^<Float> =
+  //   Internal { doc   = 'Answer the value of the zeroth Bessel function of the second kind'
+  //              flags = #(Pure DoubleArith)
+  //              name  = 'doubleOopPrimitives::y0' }
+  //%
+  static PRIM_DECL_1(y0, oop receiver);
+
+  //%prim
+  // <Float> primitiveFloatBesselY1 ^<Float> =
+  //   Internal { doc   = 'Answer the value of the first Bessel function of the second kind'
+  //              flags = #(Pure DoubleArith)
+  //              name  = 'doubleOopPrimitives::y1' }
+  //%
+  static PRIM_DECL_1(y1, oop receiver);
+
+  //%prim
+  // <Float> primitiveFloatBesselYn: n <SmallInteger>
+  //                         ifFail: failBlock <PrimFailBlock> ^<Float> =
+  //   Internal { doc   = 'Answer the value of the nth Bessel function of the second kind'
+  //              flags = #(Pure DoubleArith)
+  //              name  = 'doubleOopPrimitives::yn' }
+  //%
+  static PRIM_DECL_2(yn, oop receiver, oop argument);
+
+  //%prim
+  // <Float> primitiveFloatFractionPart ^<Float> =
+  //   Internal { doc   = 'Returns the fraction part of a float'
+  //              flags = #(Pure DoubleArith)
+  //              name  = 'doubleOopPrimitives::fractionPart' }
+  //%
+  static PRIM_DECL_1(fractionPart, oop receiver);
 };
 
 //%prim
