@@ -354,14 +354,6 @@ abs ^<Integer>
 		ifTrue: [ self negated ]
 		ifFalse: [ self ]!
 
-ceiling ^<Int>
-
-	^self!
-
-floor ^<Int>
-
-	^self!
-
 gcd: other <Integer> ^<Integer>
 	"greatest common divisor"
 
@@ -384,11 +376,7 @@ gcd: other <Integer> ^<Integer>
 
 rem: a <Number> ^<X>
 			{where X <Number> is returnType of #remFromInteger: message of arg 1}
-	^guaranteed <X> (a remFromInteger: self)!
-
-truncated ^<Int>
-
-	^self! !
+	^guaranteed <X> (a remFromInteger: self)! !
 
 ! (Delta mirrorFor: #Integer) methodsFor: 'printing' !
 
@@ -553,7 +541,19 @@ asLargeInteger ^<LargeInteger>
 ! (Delta mirrorFor: #Integer) methodsFor: 'truncation and rounding' !
 
 
+ceiling ^<Int>
+
+	^self!
+
+floor ^<Int>
+
+	^self!
+
 rounded ^<Int>
+
+	^self!
+
+truncated ^<Int>
 
 	^self! !
 
