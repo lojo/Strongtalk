@@ -25,6 +25,8 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
   template(smi_overflow,                   "SmallIntegerOverflow")       \
   template(division_by_zero,               "DivisionByZero")             \
   template(receiver_has_wrong_type,        "ReceiverHasWrongType")       \
+  template(receiver_not_strictly_positive, "ReceiverNotStrictlyPositive")\
+  template(receiver_negative,              "ReceiverNegative")           \
   template(division_not_exact,             "DivisionNotExact")           \
   template(first_argument_has_wrong_type,  "FirstArgumentHasWrongType")  \
   template(second_argument_has_wrong_type, "SecondArgumentHasWrongType") \
@@ -38,8 +40,8 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
   template(tenth_argument_has_wrong_type,  "NinthArgumentHasWrongType")  \
   template(argument_has_wrong_type,  	   "ArgumentHasWrongType")       \
   template(argument_is_invalid,            "ArgumentIsInvalid")          \
-  template(conversion_failed,		"ConversionFailed")		\
-  template(not_found,			"NotFound")			\
+  template(conversion_failed,		       "ConversionFailed")           \
+  template(not_found,                      "NotFound")                   \
   template(plus,                         "+")                      	\
   template(minus,                        "-")                      	\
   template(multiply,                     "*")                      	\
