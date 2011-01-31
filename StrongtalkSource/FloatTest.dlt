@@ -2,16 +2,20 @@ Delta define: #FloatTest as: (
 (Class subclassOf: 'TestCase' instanceVariables: '"Infinity"
 PlusInfinity <Float>
 MinusInfinity <Float>
+
 "Zeroes"
 PlusZero <Float>
 MinusZero <Float>
+
 "Nan''s"
 QNaN <Float>
 SNaN <Float>
+
 "Normal"
-Normal1 <Float>
+Normal <Float>
+
 "Subnormal"
-Subnormal1 <Float>')) !
+Subnormal <Float>')) !
 
 (Delta mirrorFor: #FloatTest) revision: '$Revision:$'!
 
@@ -22,34 +26,695 @@ comment:
 'Test suite for the corresponding Float class. Test cases defined here
 try to check for IEEE-754 conformance and behaviour.'!
 
+! (Delta mirrorFor: #FloatTest) methodsFor: 'comparison' !
+
+
+testEqual
+	self
+		  assert: [0.0 = 0.0]
+		; assert: [0.0 = 0]
+		
+		; deny: (0.0 = 0.000001)
+		; deny: (0.0 = -0.000001)
+		
+	"special values"
+		; assert: [MinusInfinity = MinusInfinity]
+		; assert: [PlusInfinity = PlusInfinity]
+		; assert: [MinusZero = MinusZero]
+		; assert: [PlusZero = PlusZero]
+		; deny: (QNaN = QNaN)
+		; deny: (SNaN = SNaN)
+!
+
+testGreater
+	self
+		  assert: [2.0 > 1.0]
+		; assert: [2.0 > 1]
+		; assert: [1.000001 > 1.0]
+		; deny: (1.0 > 2.0)
+		; deny: (1.0 > 2)
+		; deny: (0.9999999 > 1)
+
+	"special values"
+		; assert: [PlusInfinity > PlusZero]
+		; assert: [MinusZero > MinusInfinity]
+		; deny: (QNaN > 0.0)
+		; deny: (SNaN > 0.0)	!
+
+testGreaterEqual
+	self
+		  assert: [2.0 >= 1.0]
+		; assert: [1.0 >= 1.0]
+		; assert: [2.0 >= 1]
+		; assert: [2.0 >= 2]
+		; assert: [1.000001 >= 1.0]
+		; assert: [1.000000 >= 1.0]
+		
+		; deny: (1.0 >= 2.0)
+		; deny: (1.0 >= 2)
+		; deny: (0.9999999 >= 1)
+		
+	"special values"
+		; assert: [PlusInfinity >= PlusZero]
+		; assert: [PlusZero >= MinusZero]
+		; assert: [MinusZero >= MinusInfinity]
+		; deny: (QNaN >= 0.0)
+		; deny: (SNaN >= 0.0)	
+!
+
+testLess
+	self
+		  assert: [1.0 < 2.0]
+		; assert: [1.0 < 2]
+		; assert: [1.0 < 1.000001]
+		; deny: (2.0 < 1.0)
+		; deny: (2.0 < 1)
+		; deny: (1.0 < 0.9999999)
+		
+	"special values"
+		; assert: [MinusInfinity < MinusZero]
+		; assert: [PlusZero < PlusInfinity]
+		; deny: (QNaN < 0.0)
+		; deny: (SNaN < 0.0)	!
+
+testLessEqual
+	self
+		  assert: [1.0 <= 2.0]
+		; assert: [2.0 <= 2.0]
+		; assert: [1.0 <= 2]
+		; assert: [1.0 <= 1]
+		; assert: [1.0 <= 1.000001]
+		; assert: [1.0 <= 1.000000]
+
+		; deny: (2.0 <= 1.0)
+		; deny: (2.0 <= 1)
+		; deny: (1.0 <= 0.9999999)
+
+	"special values"
+		; assert: [MinusInfinity <= MinusZero]
+		; assert: [MinusZero <= PlusZero]
+		; assert: [PlusZero <= PlusInfinity]
+		; deny: (QNaN <= 0.0)
+		; deny: (SNaN <= 0.0)			! !
+
+! (Delta mirrorFor: #FloatTest) methodsFor: 'constants' !
+
+
+testUnit
+	self
+		  assert: [1.0 unit = 1.0]
+		; assert: [2.0 unit = 1.0]
+		; assert: [(1.0 unit - 1.0 unit) = 0.0]
+		; assert: [(10.0 / 10.0) = 1.0 unit]
+		"use Reflection instead of Float>>class"
+		; assert: [(Reflection classOf: (1.0 unit)) = Float ]
+		!
+
+testZero
+	self
+		  assert: [1.0 zero = 0.0]
+		; assert: [2.0 zero = 0.0]
+		; assert: [(1.0 zero + 1.0 zero) = 0.0]
+		; assert: [(0.0 / 1.0) = 1.0 zero]
+		"use Reflection instead of Float>>class"
+		; assert: [(Reflection classOf: (1.0 zero)) = Float ]
+! !
+
+! (Delta mirrorFor: #FloatTest) methodsFor: 'converting' !
+
+
+testAsFloat
+	self
+		  assert: [(Reflection classOf: (0.0 asFloat)) = Float]
+
+		; assert: [0.0 asFloat = 0.0]
+		; assert: [1.0 asFloat = 1.0]
+		; assert: [-1.0 asFloat = -1.0]
+		; assert: [-100.01 asFloat = -100.01]
+		
+		"specila values"
+		; assert: [MinusInfinity asFloat = MinusInfinity]
+		; assert: [PlusInfinity asFloat = PlusInfinity]
+		; assert: [MinusZero asFloat = MinusZero]
+		; assert: [PlusZero asFloat = PlusZero]
+		; assert: [QNaN asFloat isNaN]
+		; assert: [SNaN asFloat isNaN]
+!
+
+testAsInteger
+	self
+		  assert: [(Reflection classOf: (0.0 asInteger)) = SmallInteger]
+		; assert: [(Reflection classOf: (Float fmax asInteger)) = LargeInteger]
+		  
+		; assert: [0.0 asInteger = 0]
+
+		; assert: [0.4999 asInteger = 0]
+		; assert: [0.5 asInteger = 1]
+		; assert: [1.4999 asInteger = 1]
+		; assert: [1.5 asInteger = 2]
+
+		; assert: [-0.4999 asInteger = 0]
+		; assert: [-0.5 asInteger = -1]
+		; assert: [-1.4999 asInteger = -1]
+		; assert: [-1.5 asInteger = -2]
+
+	"special values (+-Infinity, NaNs) are undefined!!"
+		; assert: [MinusZero asInteger = 0]
+		; assert: [PlusZero asInteger = 0]
+		; should: [MinusInfinity asInteger] raise: Error
+		; should: [PlusInfinity asInteger] raise: Error
+		; should: [QNaN asInteger] raise: Error
+		; should: [SNaN asInteger] raise: Error
+	!
+
+testDegreesToRadians
+	self
+		  assert: [0.0 degreesToRadians = (Float pi * 0.0)]
+		; assert: [90.0 degreesToRadians = (Float pi * 0.5 )]
+		; assert: [180.0 degreesToRadians = (Float pi * 1.0)]
+		; assert: [270.0 degreesToRadians = (Float pi * 1.5)]
+		; assert: [(360.0 degreesToRadians) = (Float pi * 2.0)]
+		
+		; assert:  [1 degreesToRadians = (Float pi / 180) ]
+	!
+
+testPoint
+	self
+		  assert: [(Reflection classOf: (0.0@0.0)) = HeavyPoint]
+		; assert: [(0.0@0.0) isPoint]
+
+		; assert: [(1.0@2.0) x = 1.0 ]	
+		; assert: [(1.0@2.0) y = 2.0 ]
+		
+		"special values"
+		; assert: [(PlusInfinity@PlusInfinity) isPoint]
+		; assert: [(MinusInfinity@MinusInfinity) isPoint]
+
+		; assert: [(0.0@0.0) < (1.0@1.0)]
+		; assert: [(MinusInfinity@MinusInfinity) < (PlusZero@PlusZero)]
+		; assert: [(PlusZero@PlusZero) < (PlusInfinity@PlusInfinity)]
+!
+
+testRadiansToDegrees
+	self
+		  assert: [(Float pi * 0.0) radiansToDegrees = 0.0]
+		; assert: [(Float pi * 0.5 ) radiansToDegrees = 90.0]
+		; assert: [(Float pi * 1.0) radiansToDegrees = 180.0]
+		; assert: [(Float pi * 1.5) radiansToDegrees = 270.0]
+		; assert: [(Float pi * 2.0) radiansToDegrees = 360.0]
+
+		; assert:  [1 radiansToDegrees = (180 / Float pi) ]
+! !
+
 ! (Delta mirrorFor: #FloatTest) methodsFor: 'fixture' !
 
 
 setUp
-"
-add more IEEE-754 constants according to:
-	http://steve.hollasch.net/cgindex/coding/ieeefloat.html
-"
 	"NaNs"
 	QNaN := 0.0/0.0.
 	"SNaNs"
 	SNaN := 0.0/0.0.
+	
 	"Infinities"
 	PlusInfinity := 1.0 / 0.0.
 	MinusInfinity := -1.0 / 0.0.
+	
 	"Normals"
-	Normal1 := 1.24.
-	"Subnormals"
-	Subnormal1 := 0.0.				"TODO: Float fminDenormalized"
-	"Zeros constants"
+	Normal := Float fminNormalized.
+	
+	"Subnormal or Denormal"
+	Subnormal := Float fminNormalized nextAfter: 0.0.
+	
+	"Zero constants"
 	PlusZero := (0.0/1.0).
-	MinusZero := (0.0/-1.0)
+	MinusZero := (0.0/-1.0).
 ! !
 
-! (Delta mirrorFor: #FloatTest) methodsFor: 'tests' !
+! (Delta mirrorFor: #FloatTest) methodsFor: 'iteration' !
+
+
+testTo
+	| interv <Interval> |
+	interv := 0.0 to: 4.0.
+	self
+		  assert: [(Reflection classOf: (interv)) = Interval]
+
+		; assert: [interv size = 5]
+		; assert: [interv start = 0.0]
+		; assert: [interv stop = 4.0]
+		; assert: [interv increment = 1.0]
+
+		; assert: [(interv at: 1) = 0.0]
+		; assert: [(interv at: 2) = 1.0]
+		; assert: [(interv at: 3) = 2.0]
+		; assert: [(interv at: 4) = 3.0]
+		; assert: [(interv at: 5) = 4.0]
+!
+
+testToBy
+	| interv <Interval> |
+	interv := 0.0 to: 4.0 by: 0.5.
+	self
+		  assert: [(Reflection classOf: (interv)) = Interval]
+
+		; assert: [interv size = 9]
+		; assert: [interv start = 0.0]
+		; assert: [interv stop = 4.0]
+		; assert: [interv increment = 0.5]
+
+		; assert: [(interv at: 1) = 0.0]
+		; assert: [(interv at: 2) = 0.5]
+		; assert: [(interv at: 3) = 1.0]
+		; assert: [(interv at: 4) = 1.5]
+		; assert: [(interv at: 5) = 2.0]
+		; assert: [(interv at: 6) = 2.5]
+		; assert: [(interv at: 7) = 3.0]
+		; assert: [(interv at: 8) = 3.5]
+		; assert: [(interv at: 9) = 4.0]
+! !
+
+! (Delta mirrorFor: #FloatTest) methodsFor: 'mathematical functions' !
+
+
+testArcCosine
+	| epsilon <Float> |
+	epsilon := 1.0E-5.
+	self
+		  assert: [-1.0 arcCos isWithin: epsilon of: 3.141593 ]
+		; assert: [0.0 arcCos isWithin: epsilon of: 1.570796]
+		; assert: [1.0 arcCos isWithin: epsilon of: 0.0]
+		
+		"bounds checking"
+		; should: [-1.0001 arcCos] raise: Error
+		; should: [1.0001 arcCos] raise: Error!
+
+testArcSine
+	| epsilon <Float> |
+	epsilon := 1.0E-5.
+	self
+		  assert: [-1.0 arcSin isWithin: epsilon of: -1.570796 ]
+		; assert: [0.0 arcSin = 0.0]
+		; assert: [1.0 arcSin isWithin: epsilon of: 1.570796 ]
+		
+		"bounds checking"
+		; should: [-1.0001 arcSin] raise: Error
+		; should: [1.0001 arcSin] raise: Error
+		!
+
+testArcTangent
+	| epsilon <Float> |
+	epsilon := 1.0E-5.
+	self
+		  assert: [-1.0 arcTan isWithin: epsilon of: -0.785398]
+		; assert: [0.0 arcTan = 0.0 ]
+		; assert: [1.0 arcTan isWithin: epsilon of: 0.785398]
+		
+		"special values"
+		; assert: [MinusInfinity arcTan isWithin: epsilon of: (Float PiDiv2 negated)]
+		; assert: [PlusInfinity arcTan isWithin: epsilon of: (Float PiDiv2)]
+!
+
+testBesselFirstKind
+	"test at origin in coordinate system, some sample point (approximated) and special values"
+	| constraint <[]> besselm <[]> m <Int> z <Float> approximation <Float> epsilon <Float> |
+	epsilon := 1.0E-2.
+	
+	"j0(0) must be 1, all other bessel functions start at the origin"	
+	self
+		  assert: [0.0 j0 = 1.0]
+		; assert: [0.0 j1 = 0.0]
+		; assert: [(0.0 jn: 2) = 0.0]
+		; assert: [(0.0 jn: 3) = 0.0]
+		; assert: [(0.0 jn: -1) = 0.0]
+		; assert: [(0.0 jn: -2) = 0.0]
+		; assert: [(0.0 jn: -3) = 0.0].
+		
+	"besselm is an asymptotic approximation of a bessel function Jm(z)"
+	"Note: The approximation is valid for:     z >> constraint"
+	constraint := [:m | m squared + (1/4)].
+	besselm := [:m :z | (Float TwoDivPi / z) sqrt * ((z - (Float PiDiv2 * m) - (Float PiDiv4)) cos)].
+	
+	"test values with m=0 => J0 => constraint  =0.25,  Note: z >> constraint"
+	"J0(z): test at sample point z = 3.8"
+	z := 3.8. m := 0.
+	approximation := besselm value: m value: z.
+	self assert: [approximation isWithin: epsilon of: (  z j0 ) ].
+	"J0(z): test at sample point z = 7.0"
+	z := 7.0. m := 0.
+	approximation := besselm value: m value: z.
+	self assert: [approximation isWithin: epsilon of: ( z j0 ) ].
+	
+	"test values with m=1 => J1 => constraint  =1.25,  Note: z >> constraint"
+	"J1(z): test at sample point z = 10.0"
+	z := 10.0. m := 1.
+	approximation := besselm value: m value: z.
+	self assert: [approximation isWithin: epsilon of: (  z j1 ) ].
+	"J1(z): test at sample point z = 10.0"
+	z := 20.0. m := 1.
+	approximation := besselm value: m value: z.
+	self assert: [approximation isWithin: epsilon of: (  z j1 ) ].
+	
+	"test values with m=2 => J2 => constraint  =4.25,  Note: z >> constraint"
+	"J2(z): test at sample point z = 30.0"
+	z := 30.0. m := 2.
+	approximation := besselm value: m value: z.
+	self assert: [approximation isWithin: epsilon of: (  z jn: m ) ].
+	z := 60.0. m := 2.
+	approximation := besselm value: m value: z.
+	self assert: [approximation isWithin: epsilon of: (  z jn: m ) ].
+
+	
+	"special values"
+	"Note: +Infinity should be 0 for all n-bessel functions
+	but Windows returns NaN instead of a 0.0"
+"  self
+		  assert: [PlusInfinity j0 = 0.0]
+		; assert: [PlusInfinity j1 = 0.0]
+		; assert: [(PlusInfinity jn: 2) = 0.0]
+"!
+
+testBesselSecondKind
+	| besselm <[]> m <Int> x <Float> approximation <Float> epsilon <Float> |
+	epsilon := 1.0E-2.
+	
+	"test at origin in coordinate system"
+	self		  
+		  "all second kind bessel functions(0) must be -Infinity"
+		  assert: [0.0 y0 = MinusInfinity].
+		  "Note: all bessel function at z=0 should return -infinity, but windows returns NaNs"
+"		; assert: [0.0 y1 = MinusInfinity]
+		; assert: [(0.0 yn: 2) = MinusInfinity]
+		; assert: [(0.0 yn: 3) = MinusInfinity].
+"
+	"approx. function for x >> 1"
+	besselm := [:m :x | (Float TwoDivPi / x) sqrt * ((x - (Float PiDiv2 * m) - (Float PiDiv4)) sin)].
+	
+	"test values with m=0 => Y0; Note: x >> 1"	
+	x := 5.5. m := 0.		
+	approximation := besselm value: m value: x.
+	self assert: [approximation isWithin: epsilon of: (  x y0 ) ].
+	"another test point"
+	x := 8.5. m := 0.
+	approximation := besselm value: m value: x.
+	self assert: [approximation isWithin: epsilon of: (  x y0 ) ].
+	
+	"test values with m=1 => Y1; Note: x >> 1"	
+	x := 10.0. m := 1.		
+	approximation := besselm value: m value: x.
+	self assert: [approximation isWithin: epsilon of: (  x y1 ) ].
+	"another test point"
+	x := 20.0. m := 1.
+	approximation := besselm value: m value: x.
+	self assert: [approximation isWithin: epsilon of: (  x y1 ) ].
+
+	"test values with m=2 => Y2; Note: x >> 1"	
+	x := 10.0. m := 2.		
+	approximation := besselm value: m value: x.
+	self assert: [approximation isWithin: 0.1 of: (  x yn: m ) ].
+	"another test point"
+	x := 15.0. m := 2.
+	approximation := besselm value: m value: x.
+	self assert: [approximation isWithin: 0.1 of: (  x yn: m ) ].
+	
+		
+	"special values"
+	"Note: +Infinity should be 0 for all n-bessel functions but Windows returns NaN instead 0"
+"  self
+		  assert: [PlusInfinity y0 = 0.0]
+		; assert: [PlusInfinity y1 = 0.0]
+		; assert: [(PlusInfinity yn: 2) = 0.0]
+"	
+!
+
+testCbrt
+	"inherited from Number>>cbrt"
+	| epsilon <Float> |
+	epsilon := 1.0E-15.
+	self
+		  assert: [0.0 cbrt isWithin: epsilon of: 0.0]
+
+		; assert: [1.0 cbrt isWithin: epsilon of: 1.0]
+		; assert: [8.0 cbrt isWithin: epsilon of:  2.0]
+		; assert: [27.0 cbrt isWithin: epsilon of: 3.0]
+		; assert: [64.0 cbrt isWithin: epsilon of: 4.0]
+
+		; assert: [-1.0 cbrt isWithin: epsilon of: -1.0]
+		; assert: [-8.0 cbrt isWithin: epsilon of: -2.0]
+		; assert: [-27.0 cbrt isWithin: epsilon of: -3.0]
+		; assert: [-64.0 cbrt isWithin: epsilon of: -4.0].
+		
+	"special values"
+	self
+		  assert: [MinusZero cbrt = MinusZero]
+		; assert: [PlusZero cbrt = PlusZero]
+		; assert: [MinusInfinity cbrt = MinusInfinity]
+		; assert: [PlusInfinity cbrt = PlusInfinity]
+
+	
+		!
+
+testCosine
+	| epsilon <Float> |
+	epsilon := 1.0E-15.
+	self  
+		  assert: [Float pi negated cos isWithin: epsilon of: -1.0]
+		; assert: [Float PiDiv2 negated cos isWithin: epsilon of: 0.0]
+		; assert: [0.0 cos isWithin: epsilon of: 1.0]
+		; assert: [Float PiDiv2 cos isWithin: epsilon of: 0.0]
+		; assert: [Float pi cos isWithin: epsilon of: -1.0]
+		
+		!
+
+testExp
+	| epsilon <Float> |
+	epsilon := 1.0E-5.
+	self
+		  assert:[0.0 exp = 1.0]
+		; assert:[1.0 exp isWithin: epsilon of: 2.718282]
+		
+		"special values"
+		; assert:[MinusZero exp = 1.0]
+		; assert:[PlusZero exp = 1.0]
+		; assert:[MinusInfinity exp = PlusZero]
+		; assert:[PlusInfinity exp = PlusInfinity]
+		
+		!
+
+testFloorLog
+	"use radix 2 as test base"
+	self
+		  assert: [(1.0 floorLog: 2.0) = 0.0]
+		; assert: [(2.0 floorLog: 2.0) = 1.0]
+		; assert: [(3.0 floorLog: 2.0) = 1.0]
+		; assert: [(4.0 floorLog: 2.0) = 2.0]
+		; assert: [(4.2 floorLog: 2.0) = 2.0]
+		; assert: [(8.0 floorLog: 2.0) = 3.0].
+		
+	"special values"	
+	"receiver is <= 0"
+	self
+		  should: [0.0 floorLog: 2.0] raise: Error
+		; should: [-1.0 floorLog: 2.0] raise: Error.
+	
+	"operand (radix) is <= 1"
+	self
+		  should: [8.0 floorLog: 1.0] raise: Error
+		; should: [8.0 floorLog: 0.5] raise: Error
+		; should: [8.0 floorLog: -1.0] raise: Error.
+!
+
+testHypot
+	self
+		  assert:[(0.0 hypot: 0.0) = 0.0]
+
+		; assert:[(1.0 hypot: 0.0) = 1.0]
+		; assert:[(1.0 hypot: 0.0) = 1.0]
+		; assert:[(3.0 hypot: 4.0) = 5.0]
+		; assert:[(4.0 hypot: 3.0) = 5.0]
+		
+		; assert:[(-1.0 hypot: -0.0) = 1.0]
+		; assert:[(-1.0 hypot: -0.0) = 1.0]
+		; assert:[(-3.0 hypot: -4.0) = 5.0]
+		; assert:[(-4.0 hypot: -3.0) = 5.0]
+		
+		"special values"
+		"equivalance checks"
+		; assert:[(4.0 hypot: 3.0) = (4.0 hypot: 3.0)]
+		; assert:[(4.0 hypot: 3.0) = (4.0 hypot: -3.0)]
+		"zero checks"
+		; assert:[(2.0 hypot: MinusZero) = (2.0 abs)]
+		; assert:[(2.0 hypot: PlusZero) = (2.0 abs)]
+		"infinity"
+		; assert:[(MinusInfinity hypot: 2.0) = PlusInfinity]
+		; assert:[(PlusInfinity hypot: 2.0) = PlusInfinity]
+		; should:[(MinusInfinity hypot: QNaN)] raise: Error
+		; should:[(PlusInfinity hypot: QNaN)] raise: Error
+		!
+
+testLn
+	| epsilon <Float> |
+	epsilon := 1.0E-5.
+	self
+		  assert: [1.0 ln = 0.0]
+		; assert: [5.0 ln isWithin: epsilon of: 1.609438]
+		
+		"bounds checking"
+		; should: [-1.0 ln] raise: Error
+				
+		"special values"
+		; assert: [MinusZero ln = MinusInfinity]
+		; assert: [PlusZero ln = MinusInfinity]
+		; assert: [1.0 ln = PlusZero]
+		
+		!
+
+testLog
+	"inherited from Number>>log:"
+	"use radix 2 as test base"
+	| epsilon <Float> |
+	epsilon := 1.0E-5.
+	self
+		  assert: [(1.0 log: 2.0) = 0.0]
+		; assert: [(2.0 log: 2.0) = 1.0]
+		; assert: [(3.0 log: 2.0) isWithin: epsilon of: 1.584963]
+		; assert: [(4.0 log: 2.0) = 2.0]
+		; assert: [(4.2 log: 2.0) isWithin: epsilon of: 2.070389]
+		; assert: [(8.0 log: 2.0) = 3.0]
+		; assert: [(9.0 log: 2.0) isWithin: epsilon of: 3.169925].
+
+	"special values"	
+	"receiver is <= 0"
+	self
+		  assert: [(0.0 log: 2.0) = MinusInfinity]
+		; should: [-1.0 log: 2.0] raise: Error.
+	
+	"operand (radix) is = 1 or  <= 0"
+	self
+		  should: [(2.0 log: 1.0) = PlusInfinity]
+		; should: [(0.0 log: 1.0) = MinusInfinity]
+		; should: [(1.0 log: 1.0) isNaN]
+		
+		; assert: [(2.0 log: 0.0) = MinusZero]
+		; should: [2.0 log: -1.0] raise: Error.
+
+		!
+
+testRaisedTo
+	"inherited from Number>>raisedTo:"
+	| epsilon <Float> |
+	epsilon := 1.0E-14.
+	
+	"test integer powers"
+	self
+		  assert: [(2.0 raisedTo: 0) = 1.0]
+		; assert: [(2.0 raisedTo: 1) = 2.0]
+		; assert: [(2.0 raisedTo: 2) = 4.0]
+		; assert: [(2.0 raisedTo: 3) = 8.0]
+		; assert: [(2.0 raisedTo: -1) = 0.5]
+		; assert: [(2.0 raisedTo: -2) = 0.25]
+		; assert: [(2.0 raisedTo: -3) = 0.125]
+
+		; assert: [(-2.0 raisedTo: 0) = 1.0]
+		; assert: [(-2.0 raisedTo: 1) = -2.0]
+		; assert: [(-2.0 raisedTo: 2) = 4.0]
+		; assert: [(-2.0 raisedTo: 3) = -8.0]
+		; assert: [(-2.0 raisedTo: 4) = 16.0].
+
+	"test float powers"
+	self
+		  assert: [(2.0 raisedTo: 0.0) isWithin: epsilon of: 1.0]
+		; assert: [(2.0 raisedTo: 1.0) isWithin: epsilon of: 2.0]
+		; assert: [(2.0 raisedTo: 2.0) isWithin: epsilon of: 4.0]
+		; assert: [(2.0 raisedTo: 3.0) isWithin: epsilon of: 8.0]
+		; assert: [(2.0 raisedTo: -1.0) isWithin: epsilon of: 0.5]
+		; assert: [(2.0 raisedTo: -2.0) isWithin: epsilon of: 0.25]
+		; assert: [(2.0 raisedTo: -3.0) isWithin: epsilon of: 0.125]
+
+		; assert: [(1.2 raisedTo: 2.0) isWithin: epsilon of: 1.44].
+	
+	"special cases, receiver <= 0"
+	self
+		  assert:  [(0.0 raisedTo: 1.0) = PlusZero]
+		; assert:  [(0.0 raisedTo: 2.0) = PlusZero]
+		; assert:  [(0.0 raisedTo: 3.0) = PlusZero]
+		; should: [-1.0 raisedTo: 1.0] raise: Error
+		; should: [-2.0 raisedTo: 1.0] raise: Error
+		!
+
+testRaisedToInteger
+	"inherited from Number>>raisedToInteger:"
+	self
+		  assert: [(2.0 raisedToInteger: 0) = 1.0]
+		; assert: [(2.0 raisedToInteger: 1) = 2.0]
+		; assert: [(2.0 raisedToInteger: 2) = 4.0]
+		; assert: [(2.0 raisedToInteger: 3) = 8.0]
+		; assert: [(2.0 raisedToInteger: -1) = 0.5]
+		; assert: [(2.0 raisedToInteger: -2) = 0.25]
+		; assert: [(2.0 raisedToInteger: -3) = 0.125]
+
+		; assert: [(-2.0 raisedToInteger: 0) = 1.0]
+		; assert: [(-2.0 raisedToInteger: 1) = -2.0]
+		; assert: [(-2.0 raisedToInteger: 2) = 4.0]
+		; assert: [(-2.0 raisedToInteger: 3) = -8.0]
+		; assert: [(-2.0 raisedToInteger: 4) = 16.0]
+		
+		!
+
+testSine
+	| epsilon <Float> |
+	epsilon := 1.0E-15.
+	self  
+		  assert: [Float pi negated sin isWithin: epsilon of: 0.0]
+		; assert: [Float PiDiv2 negated sin isWithin: epsilon of: -1.0]
+		; assert: [0.0 sin isWithin: epsilon of: 0.0]
+		; assert: [Float PiDiv2 sin isWithin: epsilon of: 1.0]
+		; assert: [Float pi sin isWithin: epsilon of: 0.0]
+		
+		
+		!
+
+testSqrt
+	self
+		  assert: [0.0 sqrt = 0.0]
+		; assert: [1.0 sqrt = 1.0]
+		; assert: [6.25 sqrt = 2.5]
+
+		; should: [-1.0 sqrt] raise: Error
+		
+		!
+
+testTangent
+	| epsilon <Float> |
+	epsilon := 1.0E-15.
+	self
+		assert: [Float pi negated tan isWithin: epsilon of: 0.0]
+		; assert: [Float PiDiv2 negated tan < -1.0E16]
+		; assert: [0.0 tan isWithin: epsilon of: 0.0]
+		; assert: [Float PiDiv2 tan > 1.0E16]
+		; assert: [Float pi tan isWithin: epsilon of: 0.0]
+		
+		
+		!
+
+testTimesTwoPower
+	self
+		  assert: [(0.0 timesTwoPower: 0) = 0.0]
+		; assert: [(1.0 timesTwoPower: 0) = 1.0]
+
+		; assert: [(1.0 timesTwoPower: 1) = 2.0]
+		; assert: [(1.0 timesTwoPower: 2) = 4.0]
+		; assert: [(1.0 timesTwoPower: 3) = 8.0]
+
+		; assert: [(1.0 timesTwoPower: -1) = 0.5.]
+		; assert: [(1.0 timesTwoPower: -2) = 0.25]
+		; assert: [(1.0 timesTwoPower: -3) = 0.125]
+! !
+
+! (Delta mirrorFor: #FloatTest) methodsFor: 'operations' !
 
 
 testAbs
+	"inherited fom Number>>abs"
 	self
 		  assert: [-1.0 abs = 1.0]
 		; assert: [0.0 abs = 0.0]
@@ -62,33 +727,18 @@ testAbs
 		; assert: [PlusInfinity abs = PlusInfinity]
 !
 
-testCeiling
+testAddition
 	self
-		  assert: [-2.0 ceiling = -2.0]
-		; assert: [-1.9 ceiling = -1.0]
-		; assert: [-1.0 ceiling = -1.0]
-		; assert: [-0.9 ceiling = 0.0]
-
-		; assert: [0.1 ceiling = 1.0]
-		; assert: [1.0 ceiling = 1.0]
-		; assert: [1.1 ceiling = 2.0]
-
-		"special values"
-		; assert: [MinusZero ceiling = MinusZero]
-		; assert: [PlusZero ceiling = PlusZero]
-		; assert: [MinusInfinity ceiling = MinusInfinity]
-		; assert: [PlusInfinity ceiling = PlusInfinity]
-		!
-
-testConstants
-	self
-		    assert: [Float nan isNaN]
-		  ; deny: (Float nan isFinite)
-		  ; deny: (Float nan isInfinity)
-		  ; deny: (Float nan isNormal)
-		  
-		  ; assert: [Float maxVal =Float fmax ]
-		  ; assert: [Float minValLogBase2 = -1074 ]!
+		  assert: [0.0 + 0.0 = 0.0]
+		; assert: [0.0 + 1.0 = 1.0]
+		; assert: [1.0 + 0.0 = 1.0]
+		; assert: [-1.0 + 0.0 = -1.0]
+		; assert: [0.0 + -1.0 = -1.0]
+	
+	"special values"
+		; assert: [PlusInfinity + PlusInfinity = PlusInfinity]
+		; assert: [MinusInfinity + MinusInfinity = MinusInfinity]
+!
 
 testCopySign
 	self
@@ -102,182 +752,104 @@ testCopySign
 		
 		; assert: [(QNaN copySign: 1.0) isNaN]
 		; assert: [(QNaN copySign: -1.0) isNaN]
-		
-		"TODO: copySign: 
-		 TODO: copySign: NaN"
 !
 
-testDivideByFloatZero
+testDivision
+	self
+		  assert: [0.0 / 1.0 = 0.0]
+		; assert: [1.0 / 1.0 = 1.0]
+		; assert: [100.0 / 1.0 = 100.0]
 
-	"check for exceptions"
-	self shouldnt: [1.0 / 0.0] raise: ZeroDivide.
-	self shouldnt: [-1.0 / 0.0] raise: ZeroDivide.
-	self shouldnt: [0.0 / 0.0] raise: ZeroDivide.
-	
-	"0.0 / 0.0 is a NaN but not Infinity!!"
-	self assert: [(0.0 / 0.0) isNan].
-    self assert: [(0.0 / 0.0) isInfinity not].
-	
-	"test for +-Infinity"
-	self assert: [(1.0 / 0.0) isInfinity].
-	self assert: [(-1.0 / 0.0) isInfinity].
+	"special values"
+		; assert: [(1.0 / 0.0) isInfinity ]
+		; assert: [(0.0 / 0.0) isNaN ]
+		; assert: [(PlusInfinity / PlusInfinity) isNaN]
+		; assert: [(MinusInfinity / MinusInfinity) isNaN]
+		; assert: [(PlusInfinity / MinusInfinity) isNaN]
+		; assert: [(MinusInfinity / PlusInfinity) isNaN].
 !
 
-testDivideByIntegerZero
-
-	"divisor is an integer"
+testIntegerQuotient
+	"Inherited from Number>>//"
+	
+	"check return type"
 	self
-		should: [1.0 / 0] raise: ZeroDivide
+		  assert: [(1.0 // 1.0) = 1]
+		; assert: [(Reflection classOf: (1.0 // 1.0)) = SmallInteger].
 
-	!
-
-testDivisionByZero
-"test division-by-zero behaviour as defined by
- the IEEE-754 standard, ie.
- 
- 	dividend / +0  => +Infinity when dividend > 0
- 									 - Infinity when dividend < 0
- 									NaN      when dividend = 0
- 									
-  	dividend / -0  => - Infinity when dividend > 0
- 									+Infinity when dividend < 0
- 									NaN      when dividend = 0
-  "
-| dividend  <Float> |
-
-	"TODO: Is this correct? How do we generate of +/-0?"
-	
-	"
-	self assert: [(1.0 / +0.0) isPosInf]; 
-	self assert: [(-1.0 / +0.0) isNegInf]; 
-	self assert: [(0.0 / +0.0) isNaN];
-	
-	self assert: [(1.0 / -0.0) isNegInf];  
-	self assert: [(-1.0 / -0.0) isPosInf];  
-	self assert: [(0.0 / -0.0) isNaN];
-"
-
+	self
+		  assert: [(10.0 // 1.0) = 10]
+		; assert: [(10.0 // 2.0) = 5]
+		; assert: [(10.0 // 3.0) = 3]
+		; assert: [(10.0 // 4.0) = 2]
+		; assert: [(10.0 // 5.0) = 2]
+		; assert: [(10.0 // 6.0) = 1]
+		; assert: [(10.0 // 7.0) = 1]
+		; assert: [(10.0 // 8.0) = 1]
+		; assert: [(10.0 // 9.0) = 1]
+		; assert: [(10.0 // 10.0) = 1].
+		
+	self
+		  assert: [(-10.0 // 1.0) = -10]
+		; assert: [(-10.0 // 2.0) = -5]
+		; assert: [(-10.0 // 3.0) = -4]
+		; assert: [(-10.0 // 4.0) = -3]
+		; assert: [(-10.0 // 5.0) = -2]
+		; assert: [(-10.0 // 6.0) = -2]
+		; assert: [(-10.0 // 7.0) = -2]
+		; assert: [(-10.0 // 8.0) = -2]
+		; assert: [(-10.0 // 9.0) = -2]
+		; assert: [(-10.0 // 10.0) = -1]
 !
 
-testFloatCharacterizationProtocol
-	"Verify IEEE-754 constants for a double precision float (64 bit)"
-	"(see: Protocol  FloatCharacterization)"
-	|  mirror protocolSupported  |
-	mirror := Mirror on: Float.
-	
-	"NB: There might be a better way to check for a procotol?"
-	"protocolSupported := mirror supportedProtocolString = 'FloatCharacterization'.
+testIsWithin
+	"inherited from Number>>isWithin:of:"
+	| epsilon <Float> |
+	epsilon := 1.0E-1.
 	self
-		assert: [protocolSupported].
-"
+		  assert: [(0.0 - epsilon) isWithin:epsilon of: 0.0]
+		; assert: [(0.0 + epsilon) isWithin:epsilon of: 0.0].
 
+	epsilon := Float fmin.
 	self
-		  assert: [Float denormalized = true]
-		; assert: [Float e = 2.718281828459045235360287471353]
-		; assert: [Float emax = 1023 ]
-		; assert: [Float emin = -1022 ]
-		; assert: [1.0 + Float epsilon > 1.0]
-		; deny: (1.0 + Float epsilon = 1.0)
-		; assert: [1.0 + (Float epsilon asFloat / Float radix asFloat) = 1.0]
-		; assert: [Float fmax exponent = Float emax]
-	    ; assert: [Float fminNormalized exponent = Float emin]
-	    ; assert: [Float fminDenormalized exponent = (Float emin + 1 - Float precision)]
-		; assert: [Float pi = 3.14159265358979323846264338327950288]
-		; assert: [Float precision = 53 ]
-		; assert: [Float radix = 2]
-		
+		  assert: [(0.0 - epsilon) isWithin:epsilon of: 0.0]
+		; assert: [(0.0 + epsilon) isWithin:epsilon of: 0.0].
 !
 
-testFloor
+testMultiplication
 	self
-		  assert: [1.123 floor = 1.0]
-		; assert: [1.0 floor = 1.0]
-		; assert: [0.9 floor = 0.0]
-		
-		; assert: [0.0 floor = 0.0]
-		
-		; assert: [-0.1 floor = -1.0]
-		; assert: [-1.0 floor = -1.0]
-		; assert: [-1.1 floor = -2.0]
+		  assert: [0.0 * 0.0 = 0.0]
+		; assert: [0.0 * 1.0 = 0.0]
+		; assert: [1.0 * 0.0 = 0.0]
+		; assert: [1.0 * 1.0 = 1.0]
+		; assert: [-1.0 * 1.0 = -1.0]
+		; assert: [1.0 * -1.0 = -1.0]
 
-		; assert: [(PlusZero nextAfter: -1.0) floor = -1.0]
-		; assert: [(MinusZero nextAfter: -1.0) floor = -1.0]
-		; assert: [(PlusZero nextAfter: 1.0) floor = 0.0]
-		; assert: [(MinusZero nextAfter: 1.0) floor = 0.0]
-		
+	"special values"
+		; assert: [PlusInfinity * PlusInfinity = PlusInfinity]
+		; assert: [PlusInfinity * MinusInfinity = MinusInfinity]
+		; assert: [MinusInfinity * PlusInfinity= MinusInfinity]
+		; assert: [MinusInfinity * MinusInfinity= PlusInfinity]
+		; assert: [(MinusInfinity * 0.0) isNaN]
+		; assert: [(PlusInfinity * 0.0) isNaN]
+		; assert: [(0.0 * MinusInfinity) isNaN]
+		; assert: [(0.0 * PlusInfinity) isNaN]
+!
+
+testNegated
+	"inherited from Number>>negated"
+	self
+		  assert: [-100.0 negated = 100.0]
+		; assert: [100.0 negated = -100.0]  
+		; assert: [-1.5 negated = 1.5]  
+		; assert: [1.5 negated = -1.5] 
+		; assert: [0.0 negated = 0.0] 
+		  
 		"special values"
-		; assert: [MinusZero floor = MinusZero]
-		; assert: [PlusZero floor = PlusZero]
-		; assert: [MinusInfinity floor = MinusInfinity]
-		; assert: [PlusInfinity floor = PlusInfinity]
-
-
-!
-
-testIsFinite
-	"test is float instance zero, subnormal, or normal"
-	self
-		  assert: [MinusZero isFinite]
-		; assert: [PlusZero isFinite]
-		; assert: [Subnormal1 isFinite]
-		; assert: [-1.0 isFinite]
-		; assert: [1.0 isFinite]
-		; deny: (QNaN isFinite)
-		; deny: (SNaN isFinite)
-		; deny: (PlusInfinity isFinite)
-		; deny: (MinusInfinity isFinite)
-!
-
-testIsInfinity
-	self
-		  assert: [MinusInfinity isInfinity]
-		; assert: [PlusInfinity isInfinity]
-		
-		; deny: (-100.0 isInfinity)
-		; deny: (-1.0 isInfinity)
-		; deny: (MinusZero isInfinity)
-		; deny: (PlusZero isInfinity)
-		; deny: (Subnormal1 isInfinity)
-		; deny: (1.0 isInfinity)
-		; deny: (100.0 isInfinity)
-		; deny: (QNaN isInfinity)
-		; deny: (SNaN isInfinity)
-!
-
-testIsNaN
-	self
-		  assert: [QNaN isNaN]
-		; assert: [SNaN isNaN]
-		
-		; deny: (MinusInfinity isNaN)
-		; deny: (-100.0 isNaN)
-		; deny: (-1.0 isNaN)
-		; deny: (Subnormal1 isNaN)
-		; deny: (MinusZero isNaN)
-		; deny: (PlusZero isNaN)
-		; deny: (1.0 isNaN)
-		; deny: (100.0 isNaN)
-		; deny: (PlusInfinity isNaN)
-!
-
-testIsNormal
-	self
-		  assert: [Float fmax isNormal]
-		; assert: [Float fminNormalized isNormal]
-		
-		; deny: (MinusInfinity isNormal)
-		; deny: (Float fminDenormalized isNormal)
-		; deny: (Subnormal1 isNormal)
-		; deny: (MinusZero isNormal)
-		; deny: (PlusZero isNormal)
-		; deny: (PlusInfinity isNormal)
-		; deny: (QNaN isNormal)
-		; deny: (SNaN isNormal)
-		
-!
-
-testMathConstants
-!
+		; assert: [MinusZero negated = PlusZero]
+		; assert: [PlusZero negated = MinusZero]
+		; assert: [MinusInfinity negated = PlusInfinity]
+		; assert: [PlusInfinity negated = MinusInfinity] !
 
 testNextAfter
 	self
@@ -298,50 +870,87 @@ testNextAfter
 		; assert: [(PlusInfinity nextAfter: 0.0) isFinite]
 !
 
-testOperationsThatProduceNaNs
-	"The following 7 arithmetic operations shall deliver a NaN.
- 	This is defined by the IEEE-754 standard."
- 	
- 	
- 	
- 	
-	"
-	5) REMAINDER(Anything, 0.0)
-	6) REMAINDER(inf, Anything)
-	"
+testQuotient
+	"Inherited from Number>>quo:"
+	"truncation is towards zero"
 	
-	"1.) real sqrt(Negative)"
-	self assert: [-1.0 sqrt isNaN].
-	self assert: [-999.00 sqrt isNaN].
-	"2.) 0 * infinity"
-	self assert: [(0.0 * PlusInfinity) isNaN].
-	self assert: [(0.0 * MinusInfinity) isNaN].
-	self assert: [(PlusInfinity * 0.0) isNaN].
-	self assert: [(MinusInfinity * 0.0) isNaN].
-	"3.) 0.0 / 0.0"
-	self assert: [(0.0 / 0.0) isNaN].
-	"4.) infinity / infinity"
-	self assert: [(PlusInfinity / PlusInfinity) isNaN].
-	self assert: [(MinusInfinity / MinusInfinity) isNaN].
-	self assert: [(PlusInfinity / MinusInfinity) isNaN].
-	self assert: [(MinusInfinity / PlusInfinity) isNaN].
-	"
-	5. and 6. here
-	"
-	"7.) Infinity-Infinity = NaN when signs agree, but Infinity+Infinity = Infinity"
-	self assert: [(MinusInfinity - MinusInfinity) isNaN].
-	self assert: [(PlusInfinity - PlusInfinity) isNaN].
+	"check return type"
+	self
+		  assert: [(1.0 quo: 1.0) = 1]
+		; assert: [(Reflection classOf: (1.0 quo: 1.0)) = SmallInteger].
+		
+	self
+		  assert: [(0.0 quo: 1.0) = 0]
+		; assert: [(6.0 quo: 3.0) = 2]
+		; assert: [(6.0 quo: 2.0) = 3]
+		; assert: [(6.0 quo: 4.0) = 1]
+		; assert: [(3.0 quo: 2.0) = 1]
+		; assert: [(-1.0 quo: 1.0) = -1]
+		; assert: [(-1.0 quo: -1.0) = 1].
+!
+
+testReciprocal
+	"inherited from Number>>reciprocal"
+	self
+		  assert: [0.0 reciprocal = PlusInfinity]
+		; assert: [1.0 reciprocal = 1.0]  
+		; assert: [2.0 reciprocal = (1.0/2.0)]  
+		; assert: [10.0 reciprocal = (1.0/10.0)]  
+		; assert: [-1.0 reciprocal = -1.0]  
+		; assert: [-2.0 reciprocal = (-1.0/2.0)]  
+		; assert: [-10.0 reciprocal = (-1.0/10.0)]
+		
+	"special values"
+		; assert: [PlusInfinity reciprocal = PlusZero]  
+		; assert: [QNaN reciprocal isNaN]
+		; assert: [SNaN reciprocal isNaN]
 	
-	"
-	Operation 			NaN Produced By
-			+								8 + (- 8)
-			×								0×8
-			/								0/0, 8/8
-			REM						x REM 0, 8 REM y
-			sqrt x						sqrt x (when x <0)
+!
+
+testRemainder
+	"Inherited from Number>>quo:"
+	self
+		  assert: [(0.0 rem: 1.0) = 0.0]	
+		; assert: [(0.0 rem: 1) = 0.0]
+		; assert: [(1.0 rem: 1.0) = 0.0]
+		; assert: [(1.0 rem: 1) = 0.0]
+		; assert: [(2.0 rem: 1.0) = 0.0]
+		; assert: [(2.0 rem: 1) = 0.0]
+		; assert: [(3.0 rem: 2.0) = 1.0]
+		; assert: [(3.0 rem: 2) = 1.0]
+		; assert: [(6.0 rem: 4.0) = 2.0]
+		; assert: [(6.0 rem: 4) = 2.0].
+!
+
+testSquared
+	"inherited from Number>>squared"
+	self
+		  assert: [0.0 squared = 0.0]
+		; assert: [1.0 squared = 1.0]  
+		; assert: [2.0 squared = 4.0]  
+		; assert: [-1.0 squared = 1.0]  
+		; assert: [-2.0 squared = 4.0]  
+		; assert: [0.25 squared = 0.0625]  
+		; assert: [0.5 squared = 0.25]  
+!
+
+testSubtraction
+	self
+		  assert: [0.0 - 0.0 = 0.0]
+		; assert: [0.0 - 1.0 = -1.0]
+		; assert: [1.0 - 0.0 = 1.0]
+		; assert: [-1.0 - 0.0 = -1.0]
+		; assert: [0.0 - -1.0 = 1.0]
 	
-	"
-	!
+	"special values"
+		; assert: [MinusInfinity - PlusInfinity = MinusInfinity]
+		; assert: [PlusInfinity - MinusInfinity = PlusInfinity]
+		; assert: [(PlusInfinity - PlusInfinity) isNaN]
+		; assert: [(MinusInfinity - MinusInfinity) isNaN]
+! !
+
+! (Delta mirrorFor: #FloatTest) methodsFor: 'printing' !
+
 
 testPrintString
 	self
@@ -362,40 +971,517 @@ testPrintString
 		; assert: [SNaN printString = 'NaN' ]
 		; assert: [QNaN printString = 'NaN' ]
 
+		! !
+
+! (Delta mirrorFor: #FloatTest) methodsFor: 'testing' !
+
+
+testEven
+	self
+		  assert: [0.0 even]
+
+		; deny: (0.1 even)
+		; deny: (0.5 even)
+		; deny: (1.0 even)
+		; deny: (1.5 even)
+		
+		; assert: [2.0 even]
+		
+		; deny: (-0.1 even)
+		; deny: (-0.5 even)
+		; deny: (-1.0 even)
+		; deny: (-1.5 even)
+		
+		; assert: [-2.0 even]		
 		!
+
+testIsFinite
+	"test is float instance zero, subnormal, or normal"
+	self
+		  assert: [MinusZero isFinite]
+		; assert: [PlusZero isFinite]
+		; assert: [Subnormal isFinite]
+		; assert: [-1.0 isFinite]
+		; assert: [1.0 isFinite]
+		; deny: (QNaN isFinite)
+		; deny: (SNaN isFinite)
+		; deny: (PlusInfinity isFinite)
+		; deny: (MinusInfinity isFinite)
+!
+
+testIsInfinity
+	self
+		  assert: [MinusInfinity isInfinity]
+		; assert: [PlusInfinity isInfinity]
+		
+		; deny: (-100.0 isInfinity)
+		; deny: (-1.0 isInfinity)
+		; deny: (MinusZero isInfinity)
+		; deny: (PlusZero isInfinity)
+		; deny: (Subnormal isInfinity)
+		; deny: (1.0 isInfinity)
+		; deny: (100.0 isInfinity)
+		; deny: (QNaN isInfinity)
+		; deny: (SNaN isInfinity)
+!
+
+testIsNaN
+	self
+		  assert: [QNaN isNaN]
+		; assert: [SNaN isNaN]
+		
+		; deny: (MinusInfinity isNaN)
+		; deny: (-100.0 isNaN)
+		; deny: (-1.0 isNaN)
+		; deny: (Subnormal isNaN)
+		; deny: (MinusZero isNaN)
+		; deny: (PlusZero isNaN)
+		; deny: (1.0 isNaN)
+		; deny: (100.0 isNaN)
+		; deny: (PlusInfinity isNaN)
+!
+
+testIsNormal
+	self
+		  assert: [Float fmax isNormal]
+		; assert: [Float fminNormalized isNormal]
+		
+		; deny: (MinusInfinity isNormal)
+		; deny: (Float fminDenormalized isNormal)
+		; deny: (Subnormal isNormal)
+		; deny: (MinusZero isNormal)
+		; deny: (PlusZero isNormal)
+		; deny: (PlusInfinity isNormal)
+		; deny: (QNaN isNormal)
+		; deny: (SNaN isNormal)
+		
+!
+
+testIsZero
+	self
+		  assert: [0.0 isZero]
+		  
+		; deny: (-1.0 isZero)
+		; deny: (-0.1 isZero)
+		; deny: (0.1 isZero)
+		; deny: (1.0 isZero)
+		  
+!
+
+testNegative
+	self
+		  assert: [-1.0 negative]
+		; assert: [-0.0001 negative]
+		
+		; deny: (0.0 negative)
+		
+		; deny: (0.0001 negative)
+		; deny: (1.0 negative)
+		
+!
+
+testOdd
+	self
+		  deny: (0.0 odd)
+
+		; assert: [0.1 odd]
+		; assert: [0.5 odd]
+		; assert: [1.0 odd]
+		; assert: [1.5 odd]
+		
+		; deny: (2.0 odd)
+		
+		; assert: [-0.1 odd]
+		; assert: [-0.5 odd]
+		; assert: [-1.0 odd]
+		; assert: [-1.5 odd]
+		
+		; deny: (-2.0 odd)		
+		!
+
+testPositive
+	self
+		  assert: [1.0 positive]
+		; assert: [0.0001 positive]
+		
+		; assert: [0.0 positive]
+		
+		; deny: (-0.0001 positive)
+		; deny: (-1.0 positive)
+		
+!
 
 testSign
 	"test the signum function"
 	self
 		  assert: [-1.0 sign = -1.0]
 		; assert: [1.0 sign = 1.0]
+"
 		; assert: [MinusZero sign = -0.0]
 		; assert: [PlusZero sign = 0.0]
+"
 		; assert: [-100.0 sign = -1.0]
 		; assert: [100.0 sign = 1.0]
+"
 		; assert: [PlusInfinity sign = 1.0]
 		; assert: [MinusInfinity sign = -1.0]
 		; assert: [QNaN sign isNaN]
-		; assert: [SNaN sign isNaN]!
+		; assert: [SNaN sign isNaN]
+"!
 
-testSpecialOperations
-	"Operations on special numbers are well-defined by IEEE.
-	In the simplest case, any operation with a NaN yields a
-	NaN result. Other operations are as follows:
+testStrictlyPositive
+	self
+		  assert: [1.0 strictlyPositive]
+		; assert: [0.0001 strictlyPositive]
+		
+		; deny: (0.0 strictlyPositive)
 
-	Operation	Result
-	n ÷ ±Infinity	0
-	±Infinity × ±Infinity	±Infinity
-	±nonzero ÷ 0	±Infinity
-	Infinity + Infinity	Infinity
-	±0 ÷ ±0	NaN
-	Infinity - Infinity	NaN
-	±Infinity ÷ ±Infinity	NaN
-	±Infinity × 0	NaN
-"
+		; deny: (-0.0001 strictlyPositive)
+		; deny: (-1.0 strictlyPositive)
+		! !
+
+! (Delta mirrorFor: #FloatTest) methodsFor: 'tests' !
+
+
+testConstants
+	self
+		    assert: [Float nan isNaN]
+		  ; deny: (Float nan isFinite)
+		  ; deny: (Float nan isInfinity)
+		  ; deny: (Float nan isNormal)
+		  
+		  ; assert: [Float maxVal = Float fmax ]
+		  ; assert: [Float minValLogBase2 = -1074 ]!
+
+testDivideByFloatZero
+
+	"check for exceptions"
+	self shouldnt: [1.0 / 0.0] raise: ZeroDivide.
+	self shouldnt: [-1.0 / 0.0] raise: ZeroDivide.
+	self shouldnt: [0.0 / 0.0] raise: ZeroDivide.
+	
+	"0.0 / 0.0 is a NaN but not Infinity!!"
+	self assert: [(0.0 / 0.0) isNan].
+    self deny: ((0.0 / 0.0) isInfinity).
+	
+	"test for +-Infinity"
+	self assert: [(1.0 / 0.0) isInfinity].
+	self assert: [(-1.0 / 0.0) isInfinity].
 !
 
-testTypeCheckProtocol
-	self assert: [1 = 1].
-! !
+testDivideByIntegerZero
+
+	"divisor is an integer"
+	self
+		should: [1.0 / 0] raise: ZeroDivide
+
+	!
+
+testDivisionByZero
+	"test division-by-zero behaviour as defined by
+ 	the IEEE-754 standard, ie.
+ 
+ 	dividend / +0  => +Infinity when dividend > 0
+ 									 - Infinity when dividend < 0
+ 									NaN      when dividend = 0
+ 									
+  	dividend / -0  => - Infinity when dividend > 0
+ 									+Infinity when dividend < 0
+ 									NaN      when dividend = 0
+  "
+	self
+		  assert: [(1.0 / 0.0) = PlusInfinity]
+		; assert: [(-1.0 / 0.0) = MinusInfinity]
+		; assert: [(0.0 / 0.0) isNaN]
+		
+		; assert: [(1.0 / (-1.0 * 0.0)) = MinusInfinity]
+		; assert: [(-1.0 / (-1.0 * 0.0)) = PlusInfinity]
+		;  assert: [(0.0 / (-1.0 * 0.0)) isNaN]
+
+
+!
+
+testFloatCharacterizationProtocol
+	"Verify IEEE-754 constants for a double precision float (64 bit)"
+	"(see: Protocol  FloatCharacterization)"
+	|  mirror protocolSupported  |
+	mirror := Mirror on: Float.
+	
+	"NB: There might be a better way to check for a procotol?"
+	protocolSupported := mirror supportedProtocolString = 'FloatCharacterization'.
+	self
+		assert: [protocolSupported].
+
+
+	self
+		  assert: [Float denormalized = true]
+		; assert: [Float e = 2.718281828459045]
+		; assert: [Float emax = 1023 ]
+		; assert: [Float emin = -1022 ]
+		; assert: [1.0 + Float epsilon > 1.0]
+		; deny: (1.0 + Float epsilon = 1.0)
+		; assert: [1.0 + (Float epsilon asFloat / Float radix asFloat) = 1.0]
+		; assert: [Float fmax exponent = Float emax]
+	    ; assert: [Float fminNormalized exponent = Float emin]
+	    ; assert: [Float fminDenormalized exponent = (Float emin + 1 - Float precision)]
+		; assert: [Float pi = 3.141592653589793]
+		; assert: [Float precision = 53 ]
+		; assert: [Float radix = 2]
+
+!
+
+testOperationsThatProduceNaNs
+	"The following 7 arithmetic operations shall deliver a NaN."
+	
+	"1.) real sqrt(Negative)"
+	self should: [-1.0 sqrt] raise: Error.
+	
+	"2.) 0 * infinity"
+	self assert: [(0.0 * PlusInfinity) isNaN].
+	self assert: [(0.0 * MinusInfinity) isNaN].
+	self assert: [(PlusInfinity * 0.0) isNaN].
+	self assert: [(MinusInfinity * 0.0) isNaN].
+	
+	"3.) 0.0 / 0.0"
+	self assert: [(0.0 / 0.0) isNaN].
+	
+	"4.) infinity / infinity"
+	self assert: [(PlusInfinity / PlusInfinity) isNaN].
+	self assert: [(MinusInfinity / MinusInfinity) isNaN].
+	self assert: [(PlusInfinity / MinusInfinity) isNaN].
+	self assert: [(MinusInfinity / PlusInfinity) isNaN].
+
+	"5) REMAINDER(Anything, 0.0)
+	 6) REMAINDER(inf, Anything)"
+	self should: [1.0 rem: 0.0 ] raise: Error.
+	self should: [1.0 \\ 0.0 ] raise: Error.
+	self should: [MinusInfinity rem: 1.0 ] raise: Error.
+	self should: [PlusInfinity rem: 1.0 ] raise: Error.
+	self should: [MinusInfinity \\ 1.0 ] raise: Error.
+	self should: [PlusInfinity \\ 1.0 ] raise: Error.
+
+	"7.) Infinity-Infinity = NaN when signs agree, but Infinity+Infinity = Infinity"
+	self assert: [(MinusInfinity - MinusInfinity) isNaN].
+	self assert: [(PlusInfinity - PlusInfinity) isNaN].
+
+	! !
+
+! (Delta mirrorFor: #FloatTest) methodsFor: 'truncation and rounding' !
+
+
+testCeiling
+	"inherited from Number>>ceiling"
+	self
+		  assert: [-2.0 ceiling = -2]
+		; assert: [-1.9 ceiling = -1]
+		; assert: [-1.0 ceiling = -1]
+		; assert: [-0.9 ceiling = 0]
+
+		; assert: [0.1 ceiling = 1]
+		; assert: [1.0 ceiling = 1]
+		; assert: [1.1 ceiling = 2]
+
+		"special values"
+		; assert: [MinusZero ceiling = MinusZero]
+		; assert: [PlusZero ceiling = PlusZero]
+		; should: [MinusInfinity ceiling] raise: Error
+		; should: [PlusInfinity ceiling] raise: Error
+		; should: [QNaN ceiling] raise: Error
+		; should: [SNaN ceiling] raise: Error
+		!
+
+testExponent
+	"test exponents with base 2"
+	self
+		  assert: [1.0 exponent = 0]
+		; assert: [2.0 exponent = 1]
+		; assert: [3.0 exponent = 1]
+		; assert: [4.0 exponent = 2]
+
+		; assert: [-1.0 exponent = 0]
+		; assert: [-2.0 exponent = 1]
+		; assert: [-3.0 exponent = 1]
+		; assert: [-4.0 exponent = 2]
+
+!
+
+testFloor
+	"inherited from Number>>floor"
+	self
+		  assert: [1.123 floor = 1]
+    	; assert: [1.0 floor = 1]
+		; assert: [0.9 floor = 0]
+	
+		; assert: [0.0 floor = 0]		
+		; assert: [-0.1 floor = -1]
+		; assert: [-1.0 floor = -1]
+		; assert: [-1.1 floor = -2]
+
+
+		; assert: [(PlusZero nextAfter: -1.0) floor = -1.0]
+		; assert: [(MinusZero nextAfter: -1.0) floor = -1.0]
+		; assert: [(PlusZero nextAfter: 1.0) floor = 0.0]
+		; assert: [(MinusZero nextAfter: 1.0) floor = 0.0]
+		
+		"special values for float rounding"
+		; assert: [MinusZero floor = MinusZero]
+		; assert: [PlusZero floor = PlusZero]
+		; should: [MinusInfinity floor] raise: Error
+		; should: [PlusInfinity floor] raise: Error
+
+!
+
+testFractionPart
+	| epsilon <Float> |
+	epsilon := 1.0E-14.	
+	self
+		  assert: [0.0 fractionPart = 0.0]
+		; assert: [0.123 fractionPart isWithin: epsilon of: 0.123]
+
+		; assert: [1.123 fractionPart isWithin: epsilon of: 0.123]
+		; assert: [10.123 fractionPart  isWithin: epsilon of:  0.123]
+		; assert: [100.123 fractionPart  isWithin: epsilon of:  0.123]
+
+		; assert: [-1.123 fractionPart isWithin: epsilon of: -0.123]
+		; assert: [-10.123 fractionPart isWithin: epsilon of: -0.123]
+		; assert: [-100.123 fractionPart isWithin: epsilon of: -0.123]
+		
+		"special values"
+		; assert: [MinusInfinity fractionPart = MinusZero]
+		; assert: [PlusInfinity fractionPart = PlusZero]
+		; assert: [QNaN fractionPart isNaN]
+		; assert: [SNaN fractionPart isNaN]
+!
+
+testIntegerPart
+
+	self
+		  assert: [0.0 integerPart = 0.0]
+		; assert: [0.123 integerPart = 0.0]
+
+		; assert: [1.123 integerPart = 1.0]
+		; assert: [10.123 integerPart = 10.0]
+		; assert: [100.123 integerPart = 100.0]
+
+		; assert: [-1.123 integerPart = -1.0]
+		; assert: [-10.123 integerPart = -10.0]
+		; assert: [-100.123 integerPart = -100.0]
+		
+		"special values"
+		; assert: [MinusInfinity integerPart = MinusInfinity]
+		; assert: [PlusInfinity integerPart = PlusInfinity]
+		; assert: [QNaN integerPart isNaN]
+		; assert: [SNaN integerPart isNaN]
+!
+
+testModulo
+	self
+		  assert: [0.0 \\ 1.0 = 0.0]
+
+		; assert: [1.0 \\ 1.0 = 0.0]
+		; assert: [2.0 \\ 1.0 = 0.0]
+		; assert: [3.0 \\ 2.0 = 1.0]
+		; assert: [2.0 \\ 1.5 = 0.5]
+
+		; assert: [-1.0 \\ 1.0 = 0.0]
+		; assert: [-2.0 \\ 1.0 = 0.0]
+		; assert: [-3.0 \\ 2.0 = 1.0]
+		; assert: [-2.0 \\ 1.5 = 1.0]
+		
+		; should: [1.0 \\ 0.0 ] raise: Error!
+
+testRoundTo
+	self
+		  assert: [(0.0 roundTo: 0.1) = 0.0 ] 
+		; assert: [(1.1 roundTo: 1.0) = 1.0 ] 
+		; assert: [(1.1 roundTo: 1) = 1 ] 
+		; assert: [(1.12345 roundTo: 0.02) = 1.12 ] 
+		; assert: [(100.0 roundTo: 3.0) = 99.0 ] 
+		; assert: [(-99.0 roundTo: 2.0) = -100.0] 
+		; assert: [(-99.0 roundTo: -2.0) = -100.0 ] 
+		
+		; should: [(0.0 roundTo: 0.0)]  raise: Error!
+
+testRounded
+	self
+		  assert: [-1.5 rounded = -2] 
+		; assert: [-1.499999 rounded = -1] 
+		; assert: [-1.0 rounded = -1] 
+		; assert: [-0.5 rounded = -1]
+		; assert: [-0.499999 rounded = 0] 
+
+		;  assert: [0.0 rounded = 0] 
+
+		; assert: [0.499999 rounded = 0] 
+		; assert: [0.5 rounded = 1] 
+		; assert: [1.0 rounded = 1] 
+		; assert: [1.499999 rounded = 1] 
+		; assert: [1.5 rounded = 2] 
+
+	"special values"
+		; assert: [MinusZero rounded = 0.0]
+		; assert: [PlusZero rounded = 0.0]
+		; should: [MinusInfinity rounded] raise: Error
+		; should: [PlusInfinity rounded] raise: Error
+		; should: [QNaN rounded] raise: Error
+		; should: [SNaN rounded] raise: Error
+!
+
+testSignificand
+	"test significands with base 2"
+	self
+		  assert: [1.0 significand = 1.0]
+		; assert: [2.0 significand = 1.0]
+		; assert: [3.0 significand = 1.5]
+		; assert: [4.0 significand = 1.0]
+
+		; assert: [-1.0 significand = -1.0]
+		; assert: [-2.0 significand = -1.0]
+		; assert: [-3.0 significand = -1.5]
+		; assert: [-4.0 significand = -1.0]
+!
+
+testTruncateTo
+	"inherited from Number>>truncateTo:"
+	self
+		  assert:  [(-6.0 truncateTo: 2.0) = -6.0]
+		; assert:  [(-5.0 truncateTo: 2.0) = -4.0]
+		; assert:  [(-4.0 truncateTo: 2.0) = -4.0]
+		; assert:  [(-1.12345 truncateTo: 0.1) = -1.1]
+
+		; assert:  [(0.0 truncateTo: 0.1) = 0.0]
+
+		; assert:  [(1.12345 truncateTo: 0.1) = 1.1]
+		; assert:  [(4.0 truncateTo: 2.0) = 4.0]
+		; assert:  [(5.0 truncateTo: 2.0) = 4.0]
+		; assert:  [(6.0 truncateTo: 2.0) = 6.0]
+
+		; assert:  [(100.987 truncateTo: 0.05) = 100.95]
+
+		; should:  [(0.0 truncateTo: 0.0)] raise: Error!
+
+testTruncated
+
+	self
+		  assert: [0.0 truncated = 0]
+
+		; assert: [0.999 truncated = 0]
+		; assert: [1.0 truncated = 1]
+		; assert: [1.5 truncated = 1]
+		; assert: [1.999 truncated = 1]
+		
+		; assert: [-0.5 truncated = 0]
+		; assert: [-0.999 truncated = 0]
+		; assert: [-1.0 truncated = -1]
+		; assert: [-1.999 truncated = -1]
+
+	"special values"
+		; assert: [MinusZero truncated = 0.0]
+		; assert: [PlusZero truncated = 0.0]
+		; should: [MinusInfinity truncated] raise: Error
+		; should: [PlusInfinity truncated] raise: Error
+		; should: [QNaN truncated] raise: Error
+		; should: [SNaN truncated] raise: Error
+
+		! !
 
